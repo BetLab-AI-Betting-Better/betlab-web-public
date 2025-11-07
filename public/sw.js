@@ -1,13 +1,9 @@
-const CACHE_NAME = 'betlab-v1'
+const CACHE_NAME = 'betlab-v2'
 const OFFLINE_URL = '/offline'
 
 const STATIC_ASSETS = [
   '/',
   '/offline',
-  '/manifest.json',
-  '/icon-192.png',
-  '/icon-512.png',
-  '/icon-apple-touch.png',
 ]
 
 // Install event - cache static assets

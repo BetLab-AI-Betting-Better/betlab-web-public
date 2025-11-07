@@ -87,6 +87,16 @@ async function proxyRequest(
     // Get response data
     const data = await response.text()
 
+    // Log errors from backend
+    if (!response.ok) {
+      console.error(`[Proxy] Backend error ${response.status}:`, {
+        url: targetUrl,
+        status: response.status,
+        statusText: response.statusText,
+        data: data.substring(0, 500) // Log first 500 chars of error response
+      })
+    }
+
     // Return response with same status
     return new NextResponse(data, {
       status: response.status,
@@ -95,9 +105,16 @@ async function proxyRequest(
       },
     })
   } catch (error) {
-    console.error('[Proxy] Error:', error)
+    console.error('[Proxy] Error:', {
+      url: `${API_BASE_URL}/${path.join('/')}`,
+      error: String(error),
+      message: error instanceof Error ? error.message : 'Unknown error'
+    })
     return NextResponse.json(
-      { error: 'Proxy request failed', details: String(error) },
+      {
+        error: 'Proxy request failed',
+        details: error instanceof Error ? error.message : String(error)
+      },
       { status: 500 }
     )
   }
