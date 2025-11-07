@@ -7,7 +7,6 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "analyze": "ANALYZE=true pnpm build",
     "generate:icons": "tsx scripts/generate-icons.ts",
     "generate:splash": "tsx scripts/generate-splash-screens.ts",
     "generate:pwa": "pnpm generate:icons && pnpm generate:splash"
