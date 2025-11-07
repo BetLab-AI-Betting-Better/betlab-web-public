@@ -40,6 +40,7 @@ export function useHomeFilters(matches: Match[]) {
   const [selectedConfidences, setSelectedConfidences] = useState<ConfidenceLevel[]>([])
   const [xGRange, setXGRange] = useState<[number, number]>([0, 5])
   const [minProbability, setMinProbability] = useState(0)
+  const [searchQuery, setSearchQuery] = useState("")
 
   // Extraction ligues depuis matchs (groupées par nom nettoyé)
   const leagues = useMemo(() => {
@@ -69,6 +70,17 @@ export function useHomeFilters(matches: Match[]) {
   const filteredMatches = useMemo(() => {
     let filtered = [...matches]
 
+    // Filtre par recherche
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim()
+      filtered = filtered.filter(m =>
+        m.homeTeam.name.toLowerCase().includes(query) ||
+        m.awayTeam.name.toLowerCase().includes(query) ||
+        m.league.name.toLowerCase().includes(query) ||
+        cleanLeagueName(m.league.name).toLowerCase().includes(query)
+      )
+    }
+
     // Filtre par ligue
     if (selectedLeagueId === "favorites") {
       // Afficher uniquement les leagues populaires
@@ -83,7 +95,7 @@ export function useHomeFilters(matches: Match[]) {
     }
 
     return filtered
-  }, [matches, selectedLeagueId, leagues])
+  }, [matches, selectedLeagueId, leagues, searchQuery])
 
   // Compteur matchs par date (pour CalendarWidget)
   const matchCountsByDate = useMemo(() => {
@@ -101,6 +113,7 @@ export function useHomeFilters(matches: Match[]) {
     selectedConfidences,
     xGRange,
     minProbability,
+    searchQuery,
 
     // Setters
     setSelectedDate,
@@ -110,6 +123,7 @@ export function useHomeFilters(matches: Match[]) {
     setSelectedConfidences,
     setXGRange,
     setMinProbability,
+    setSearchQuery,
 
     // Computed
     leagues,

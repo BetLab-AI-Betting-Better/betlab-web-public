@@ -5,6 +5,7 @@
 
 // Agent 1: Sélecteurs & Filtres
 export { CalendarWidget } from "./calendar-widget"
+export { SearchBar } from "./search-bar"
 export { SportSelector } from "./sport-selector"
 export { LeaguesSelector } from "./leagues-selector"
 export { PredictionsSelector } from "./predictions-selector"

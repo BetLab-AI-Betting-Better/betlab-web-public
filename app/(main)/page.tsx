@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { CalendarWidget, SportSelector, LeaguesSelector, PredictionsSelector, FiltersPanel } from "@/lib/components/home"
+import { CalendarWidget, SearchBar, SportSelector, LeaguesSelector, PredictionsSelector, FiltersPanel } from "@/lib/components/home"
 import { MatchList } from "@/lib/components/home"
 import { LoadingState } from "@/lib/components/ui/loading-state"
 import { ErrorState } from "@/lib/components/ui/error-state"
@@ -26,12 +26,14 @@ export default function HomePage() {
     selectedConfidences,
     xGRange,
     minProbability,
+    searchQuery,
     setSelectedDate,
     setSelectedLeagueId,
     setSelectedPredictionType,
     setSelectedConfidences,
     setXGRange,
     setMinProbability,
+    setSearchQuery,
     leagues,
     filteredMatches,
     matchCountsByDate,
@@ -80,6 +82,12 @@ export default function HomePage() {
           selectedDate={selectedDate}
           onDateChange={setSelectedDate}
           matchCountsByDate={matchCountsByDate}
+        />
+
+        <SearchBar
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="Rechercher une équipe ou une ligue..."
         />
 
         <SportSelector />
