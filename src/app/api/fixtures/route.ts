@@ -15,7 +15,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getFixtures } from "@/modules/fixtures/server/queries";
 
-export const runtime = "nodejs";
+// ⚠️ runtime = "nodejs" removed - incompatible with cacheComponents in Next.js 16
 
 export async function GET(request: NextRequest) {
   try {

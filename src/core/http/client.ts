@@ -5,6 +5,7 @@ export interface HttpRequestOptions<TBody = unknown> {
   headers?: Record<string, string>;
   searchParams?: Record<string, string | number | boolean | undefined>;
   body?: TBody;
+  cache?: RequestCache;
 }
 
 export interface HttpResponse<TData = unknown> {

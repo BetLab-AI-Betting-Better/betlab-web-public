@@ -13,7 +13,7 @@ import {
   type PredictionType,
 } from "@/modules/predictions/server/queries";
 
-export const runtime = "nodejs";
+// ⚠️ runtime = "nodejs" removed - incompatible with cacheComponents in Next.js 16
 
 interface PredictionsRequest {
   fixtureIds: number[];

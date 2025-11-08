@@ -58,8 +58,16 @@ async function fetchSinglePrediction(
     ]);
 
     if (predictionResponse.status === "rejected") {
-      console.warn(`Failed to fetch predictions for ${fixtureId}:`, predictionResponse.reason);
-      return null;
+      const error = predictionResponse.reason as Error & { status?: number };
+
+      // 404 = no prediction data available for this match (expected, can be cached as null)
+      if (error?.status === 404) {
+        return null;
+      }
+
+      // Other errors (500, network, etc.) should be thrown to prevent caching
+      // This allows retries on subsequent requests
+      throw error;
     }
 
     const predictions = predictionResponse.value;
@@ -114,38 +122,36 @@ async function fetchSinglePrediction(
         throw new Error(`Unknown prediction type: ${type}`);
     }
   } catch (error) {
-    console.warn(`Failed to fetch prediction for fixture ${fixtureId}:`, error);
-    return null;
+    // Re-throw errors to prevent caching failures
+    // This allows Next.js to retry on subsequent requests
+    throw error;
   }
 }
 
-export const getPredictions = cache(
-  async (fixtureIds: number[], type: PredictionType): Promise<PredictionData[]> => {
-    'use cache';
-    if (fixtureIds.length === 0) return [];
+export const getPredictions = async (
+  fixtureIds: number[],
+  type: PredictionType
+): Promise<PredictionData[]> => {
+  if (fixtureIds.length === 0) return [];
 
-    const matchIds = fixtureIds.slice(0, 50);
-    const uniqueFixtures = [...new Set(matchIds)];
-    uniqueFixtures.forEach((id) => cacheTag(PREDICTIONS_CACHE.tags.byFixture(id)));
-    cacheLife(PREDICTIONS_CACHE.life.default);
+  const matchIds = fixtureIds.slice(0, 50);
 
-    try {
-      const predictions = await Promise.allSettled(
-        matchIds.map((fixtureId) => fetchSinglePrediction(fixtureId, type))
-      );
+  try {
+    const predictions = await Promise.allSettled(
+      matchIds.map((fixtureId) => fetchSinglePrediction(fixtureId, type))
+    );
 
-      return predictions
-        .filter(
-          (result): result is PromiseFulfilledResult<PredictionData> =>
-            result.status === "fulfilled" && result.value !== null
-        )
-        .map((result) => result.value);
-    } catch (error) {
-      console.error("Error fetching predictions:", error);
-      return [];
-    }
+    return predictions
+      .filter(
+        (result): result is PromiseFulfilledResult<PredictionData> =>
+          result.status === "fulfilled" && result.value !== null
+      )
+      .map((result) => result.value);
+  } catch (error) {
+    console.error("Error fetching predictions:", error);
+    return [];
   }
-);
+};
 
 export const getPrediction = cache(
   async (fixtureId: number, type: PredictionType): Promise<PredictionData | null> => {

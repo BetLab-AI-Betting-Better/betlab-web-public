@@ -70,7 +70,7 @@ export function useFixtureFilters(matches: Match[]) {
   // Filter state
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedLeagueId, setSelectedLeagueId] = useState<number | string | "all" | "favorites">(
-    "favorites"
+    "all"  // Changed from "favorites" to show all matches with predictions
   );
   const [selectedPredictionType, setSelectedPredictionType] = useState<PredictionType>("internal");
   const [selectedConfidences, setSelectedConfidences] = useState<ConfidenceLevel[]>([]);

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-import { PROXY_MATCHER, isPublicRoute, shouldSkipProxy } from "@/core/auth/guards";
+import { isPublicRoute, shouldSkipProxy } from "@/core/auth/guards";
 
 const ACCESS_TOKEN_COOKIE = "sb-access-token";
 const REFRESH_TOKEN_COOKIE = "sb-refresh-token";
@@ -42,5 +42,7 @@ export function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: PROXY_MATCHER,
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|manifest.json|icon-|android-icon|apple-icon).*)",
+  ],
 };

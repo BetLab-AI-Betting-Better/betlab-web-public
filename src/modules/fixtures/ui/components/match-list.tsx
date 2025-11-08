@@ -26,9 +26,11 @@
 
 import * as React from "react"
 import { useInView } from "react-intersection-observer"
-import { TimeSlotSection } from "./time-slot-section"
 import { type Match } from "./match-card-compact"
 import { MatchCardSkeleton } from "./match-card-skeleton"
+import { SubTimeSlotHeader } from "./sub-time-slot-header"
+import { HorizontalMatchList } from "./horizontal-match-list"
+import { groupMatchesByTimeSlots } from "../utils/match-grouping"
 import { cn } from "@/shared/utils"
 
 export interface MatchListProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -64,11 +66,15 @@ export interface MatchListProps extends React.HTMLAttributes<HTMLDivElement> {
   skeletonCount?: number
 }
 
-interface TimeSlots {
-  morning: Match[] // 6h-12h
-  afternoon: Match[] // 12h-18h
-  evening: Match[] // 18h-23h
-  night: Match[] // 23h-6h
+/**
+ * Emoji selon le créneau horaire
+ */
+function getTimeSlotEmoji(timeSlot: string): string {
+  if (timeSlot.includes("Matin")) return "🌅"
+  if (timeSlot.includes("Après-midi")) return "☀️"
+  if (timeSlot.includes("Soirée")) return "🌆"
+  if (timeSlot.includes("Nuit")) return "🌙"
+  return "⚽"
 }
 
 const MatchList = React.forwardRef<HTMLDivElement, MatchListProps>(
@@ -85,30 +91,9 @@ const MatchList = React.forwardRef<HTMLDivElement, MatchListProps>(
     },
     ref
   ) => {
-    // Groupe matchs par créneau horaire
-    const matchesByTimeSlot = React.useMemo<TimeSlots>(() => {
-      const grouped: TimeSlots = {
-        morning: [],
-        afternoon: [],
-        evening: [],
-        night: [],
-      }
-
-      matches.forEach((match) => {
-        const hour = match.kickoffTime.getHours()
-
-        if (hour >= 6 && hour < 12) {
-          grouped.morning.push(match)
-        } else if (hour >= 12 && hour < 18) {
-          grouped.afternoon.push(match)
-        } else if (hour >= 18 && hour < 23) {
-          grouped.evening.push(match)
-        } else {
-          grouped.night.push(match)
-        }
-      })
-
-      return grouped
+    // Groupe matchs par créneau horaire avec sous-créneaux de 2h15
+    const timeSlotGroups = React.useMemo(() => {
+      return groupMatchesByTimeSlots(matches)
     }, [matches])
 
     // Intersection observer pour lazy loading
@@ -142,48 +127,47 @@ const MatchList = React.forwardRef<HTMLDivElement, MatchListProps>(
       )
     }
 
-    // Sections à afficher (seulement celles qui ont des matchs)
-    const sections = [
-      {
-        key: "morning",
-        title: "Matin",
-        matches: matchesByTimeSlot.morning,
-      },
-      {
-        key: "afternoon",
-        title: "Après-midi",
-        matches: matchesByTimeSlot.afternoon,
-      },
-      {
-        key: "evening",
-        title: "Soirée",
-        matches: matchesByTimeSlot.evening,
-      },
-      {
-        key: "night",
-        title: "Nuit",
-        matches: matchesByTimeSlot.night,
-      },
-    ].filter((section) => section.matches.length > 0)
-
     return (
       <div ref={ref} className={cn("space-y-6", className)} {...props}>
-        {sections.map((section, index) => (
-          <TimeSlotSection
-            key={section.key}
-            title={section.title}
-            matches={section.matches}
-            onMatchClick={onMatchClick}
-            onFavoriteToggle={onFavoriteToggle}
-            defaultExpanded={index === 0} // Première section expanded par défaut
-          />
+        {timeSlotGroups.map((timeSlot) => (
+          <div key={timeSlot.label} className="space-y-3">
+            {/* Header de créneau principal avec emoji */}
+            <div className="flex items-center gap-2 px-4">
+              <span className="text-base">{getTimeSlotEmoji(timeSlot.label)}</span>
+              <span className="text-sm font-bold">{timeSlot.label}</span>
+              <span className={cn(
+                "px-2 py-0.5 rounded-full text-xs font-semibold",
+                "bg-[var(--lime)] text-[var(--navy)]"
+              )}>
+                {timeSlot.totalMatches}
+              </span>
+            </div>
+
+            {/* Sous-créneaux */}
+            {timeSlot.subSlots.map((subSlot) => (
+              <div key={subSlot.label} className="space-y-2">
+                {/* Header de sous-créneau */}
+                <SubTimeSlotHeader
+                  label={subSlot.label}
+                  matchCount={subSlot.matches.length}
+                />
+
+                {/* Liste horizontale des matchs */}
+                <HorizontalMatchList
+                  matches={subSlot.matches}
+                  onMatchClick={onMatchClick}
+                  onFavoriteToggle={onFavoriteToggle}
+                />
+              </div>
+            ))}
+          </div>
         ))}
 
         {/* Trigger lazy loading */}
         <div ref={inViewRef} className="h-4" aria-hidden="true" />
 
         {/* Indicator si lazy loading en cours */}
-        {inView && sections.length > 0 && (
+        {inView && timeSlotGroups.length > 0 && (
           <div className="text-center py-2">
             <span className="text-xs text-muted-foreground">
               Tous les matchs sont chargés

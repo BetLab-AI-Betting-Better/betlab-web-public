@@ -1,12 +1,14 @@
 import "server-only";
 import { cache } from "react";
 import { cacheLife, cacheTag } from "next/cache";
+import { headers } from "next/headers";
 import { betlabFetch } from "@/infra/services/betlab-api/client";
 import {
-  getPredictions,
+  getPrediction,
   type PredictionType,
   type PredictionData,
 } from "@/modules/predictions/server/queries";
+import { promiseBatch } from "@/shared/utils";
 import { FIXTURES_CACHE } from "../cache/profile";
 import type { Match, MatchWithPrediction } from "../domain/types";
 
@@ -88,8 +90,11 @@ export const getFixtures = cache(async (date: string): Promise<Match[]> => {
   cacheTag(FIXTURES_CACHE.tags.byDate(date));
   cacheLife(FIXTURES_CACHE.life.byDate);
 
+  // Disable Next.js fetch cache as response is > 2MB
+  // Cache is handled by 'use cache' directive instead
   const data = await betlabFetch<ApiFixtureResponse[]>("/api/fixtures", {
     searchParams: { date },
+    cache: 'no-store',
   });
   return data.map(transformFixture);
 });
@@ -99,7 +104,11 @@ export const getLiveFixtures = cache(async (): Promise<Match[]> => {
   cacheTag(FIXTURES_CACHE.tags.live());
   cacheLife(FIXTURES_CACHE.life.live);
 
-  const data = await betlabFetch<ApiFixtureResponse[]>("/api/fixtures/live");
+  // Disable Next.js fetch cache as response might be > 2MB
+  // Cache is handled by 'use cache' directive instead
+  const data = await betlabFetch<ApiFixtureResponse[]>("/api/fixtures/live", {
+    cache: 'no-store',
+  });
   return data.map(transformFixture);
 });
 
@@ -108,34 +117,38 @@ export async function getTodayFixtures(date: Date = new Date()): Promise<Match[]
   return getFixtures(today);
 }
 
-function mapPredictionsByFixture(predictions: PredictionData[]) {
-  return predictions.reduce<Map<number, PredictionData>>((acc, prediction) => {
-    if (prediction.fixtureId) {
-      acc.set(prediction.fixtureId, prediction);
-    }
-    return acc;
-  }, new Map());
-}
-
-export async function getTodayFixturesWithPredictions(options?: {
+export const getTodayFixturesWithPredictions = async (options?: {
   date?: Date;
   type?: PredictionType;
-}): Promise<MatchWithPrediction[]> {
+}): Promise<MatchWithPrediction[]> => {
+  // Force dynamic rendering by accessing headers
+  await headers();
+
   const date = options?.date ?? new Date();
   const predictionType = options?.type ?? "match_result";
 
   const matches = await getTodayFixtures(date);
-  const fixtureIds = matches.map((match) => match.fixtureId);
 
-  if (fixtureIds.length === 0) {
+  if (matches.length === 0) {
     return matches;
   }
 
-  const predictions = await getPredictions(fixtureIds, predictionType);
-  const predictionMap = mapPredictionsByFixture(predictions);
+  // Fetch predictions in batches to avoid overwhelming the API
+  // Max 5 concurrent requests to prevent 429 Rate Limit errors
+  // Only successful predictions will be cached (getPrediction uses 'use cache')
+  const predictionsResults = await promiseBatch(
+    matches,
+    (match) => getPrediction(match.fixtureId, predictionType),
+    5 // Max 5 concurrent requests
+  );
 
-  return matches.map((match) => ({
-    ...match,
-    prediction: predictionMap.get(match.fixtureId),
-  }));
-}
+  return matches.map((match, index) => {
+    const result = predictionsResults[index];
+    const prediction = result.status === "fulfilled" ? result.value : null;
+
+    return {
+      ...match,
+      prediction,
+    };
+  });
+};

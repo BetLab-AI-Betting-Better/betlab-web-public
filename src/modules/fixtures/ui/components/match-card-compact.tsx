@@ -28,7 +28,7 @@ import Image from "next/image"
 import { useSwipeable } from "react-swipeable"
 import { Star } from "lucide-react"
 import { format, fr } from "@/shared/utils/date"
-import { TEAM_LOGO_BLUR, LEAGUE_LOGO_BLUR } from "@/shared/utils/image-loader"
+import { TEAM_LOGO_BLUR } from "@/shared/utils/image-loader"
 import type { PredictionData } from "@/modules/predictions/domain/types"
 import { cn } from "@/shared/utils"
 
@@ -111,9 +111,9 @@ const MatchCardCompact = React.forwardRef<HTMLDivElement, MatchCardCompactProps>
         {...swipeHandlers}
         onClick={handleClick}
         className={cn(
-          "relative min-h-[120px] p-4 rounded-lg border-2 transition-all cursor-pointer overflow-hidden",
+          "relative h-[200px] p-4 rounded-lg border-2 transition-all cursor-pointer overflow-hidden",
           "hover:border-[var(--lime)] active:scale-[0.98]",
-          "touch-manipulation select-none",
+          "touch-manipulation select-none flex flex-col",
           match.isFavorite
             ? "border-[var(--lime)] bg-[var(--lime)]/5"
             : "border-border bg-card",
@@ -147,8 +147,6 @@ const MatchCardCompact = React.forwardRef<HTMLDivElement, MatchCardCompactProps>
             className="shrink-0"
             loading="lazy"
             quality={75}
-            placeholder="blur"
-            blurDataURL={LEAGUE_LOGO_BLUR}
           />
           <span className="text-xs text-muted-foreground truncate">
             {match.league.name}
@@ -223,47 +221,53 @@ const MatchCardCompact = React.forwardRef<HTMLDivElement, MatchCardCompactProps>
         </div>
 
         {/* Prediction - V1/X/V2 Display */}
-        {match.prediction?.type === "match_result" && (() => {
-          const prediction = match.prediction as Extract<PredictionData, { type: "match_result" }>
-          const homeProb = prediction.homeWin.probability * 100
-          const drawProb = prediction.draw.probability * 100
-          const awayProb = prediction.awayWin.probability * 100
-          const maxProb = Math.max(homeProb, drawProb, awayProb)
+        <div className="flex justify-center mt-2">
+          {match.prediction?.type === "match_result" ? (() => {
+            const prediction = match.prediction as Extract<PredictionData, { type: "match_result" }>
+            const homeProb = prediction.homeWin.probability * 100
+            const drawProb = prediction.draw.probability * 100
+            const awayProb = prediction.awayWin.probability * 100
+            const maxProb = Math.max(homeProb, drawProb, awayProb)
 
-          return (
-            <div className="flex items-center justify-center gap-3 px-4 py-1.5 rounded-lg bg-[var(--navy-ultra-light)] border border-[var(--lime)] border-opacity-30 mt-2">
-              <span className="text-[11px]">
-                <span className={cn("font-bold", homeProb === maxProb ? "text-[var(--lime)]" : "text-[var(--gray)]")}>
-                  V1
+            return (
+              <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-lg bg-[var(--navy-ultra-light)] border border-[var(--lime)] border-opacity-30">
+                <span className="text-[11px] whitespace-nowrap">
+                  <span className={cn("font-bold", homeProb === maxProb ? "text-[var(--lime)]" : "text-[var(--gray)]")}>
+                    V1
+                  </span>
+                  {" "}
+                  <span className={cn("font-semibold", homeProb === maxProb ? "text-[var(--navy)]" : "text-[var(--text-primary)]")}>
+                    {homeProb.toFixed(1)}%
+                  </span>
                 </span>
-                {" "}
-                <span className={cn("font-semibold", homeProb === maxProb ? "text-[var(--navy)]" : "text-[var(--text-primary)]")}>
-                  {homeProb.toFixed(1)}%
-                </span>
-              </span>
 
-              <span className="text-[11px]">
-                <span className={cn("font-bold", drawProb === maxProb ? "text-[var(--lime)]" : "text-[var(--gray)]")}>
-                  X
+                <span className="text-[11px] whitespace-nowrap">
+                  <span className={cn("font-bold", drawProb === maxProb ? "text-[var(--lime)]" : "text-[var(--gray)]")}>
+                    X
+                  </span>
+                  {" "}
+                  <span className={cn("font-semibold", drawProb === maxProb ? "text-[var(--navy)]" : "text-[var(--text-primary)]")}>
+                    {drawProb.toFixed(1)}%
+                  </span>
                 </span>
-                {" "}
-                <span className={cn("font-semibold", drawProb === maxProb ? "text-[var(--navy)]" : "text-[var(--text-primary)]")}>
-                  {drawProb.toFixed(1)}%
-                </span>
-              </span>
 
-              <span className="text-[11px]">
-                <span className={cn("font-bold", awayProb === maxProb ? "text-[var(--lime)]" : "text-[var(--gray)]")}>
-                  V2
+                <span className="text-[11px] whitespace-nowrap">
+                  <span className={cn("font-bold", awayProb === maxProb ? "text-[var(--lime)]" : "text-[var(--gray)]")}>
+                    V2
+                  </span>
+                  {" "}
+                  <span className={cn("font-semibold", awayProb === maxProb ? "text-[var(--navy)]" : "text-[var(--text-primary)]")}>
+                    {awayProb.toFixed(1)}%
+                  </span>
                 </span>
-                {" "}
-                <span className={cn("font-semibold", awayProb === maxProb ? "text-[var(--navy)]" : "text-[var(--text-primary)]")}>
-                  {awayProb.toFixed(1)}%
-                </span>
-              </span>
+              </div>
+            )
+          })() : (
+            <div className="inline-flex items-center px-4 py-1.5 rounded-lg bg-muted text-muted-foreground">
+              <span className="text-[11px]">Chargement...</span>
             </div>
-          )
-        })()}
+          )}
+        </div>
 
         {/* Favorite button */}
         {onFavoriteToggle && (

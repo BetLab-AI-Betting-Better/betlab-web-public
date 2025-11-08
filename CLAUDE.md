@@ -1,580 +1,295 @@
+Les bonnes pratiques **Next.js 16.0.1** (proxy.ts, Cache Components, PPR unifiée) et l’architecture **feature-first modulaire** « modules/core/infra/shared ».
+
 # CLAUDE.md — Architecture BetLab Web & Next.js 16
 
-> ✅ **MISE À JOUR POST-MIGRATION (2025-11-07)** : Architecture conforme Next.js 16.0.1 avec Server Components, PPR, et organisation feature-first.
+> ✅ **État** : conforme Next.js 16.0.1 (Proxy, Cache Components, PPR), architecture modulaire stable, prête à scaler.
+
+## Sommaire
+
+1. Architecture cible
+2. Principes Next.js 16 (proxy, cache, PPR, build)
+3. Structure des dossiers (canon)
+4. Data fetching & cache (patterns)
+5. Auth & sécurité (proxy, guards)
+6. State management (échelle de priorités)
+7. Workflow dev (ajouter une feature)
+8. Build & perf (React Compiler, Turbopack FS cache)
+9. Migration legacy (facultatif)
+10. Références
 
 ---
 
-## 📋 Table des Matières
+## 1) Architecture cible
 
-1. [Architecture Actuelle](#1-architecture-actuelle)
-2. [Principes Next.js 16](#2-principes-nextjs-16)
-3. [Structure des Dossiers](#3-structure-des-dossiers)
-4. [Data Fetching & Cache](#4-data-fetching--cache)
-5. [State Management](#5-state-management)
-6. [Authentification & Sécurité](#6-authentification--sécurité)
-7. [Workflow Développement](#7-workflow-développement)
-8. [Migration en Cours](#8-migration-en-cours)
-9. [Références](#9-références)
+### Vision
 
----
+* **Feature-first** : chaque domaine vit dans `src/modules/<feature>` (domain/server/ui/cache/tests).
+* **Couches** :
 
-## 1. Architecture Actuelle
+  * `app/` : pages/layouts/route handlers **minces** (I/O, orchestration).
+  * `modules/` : logique métier colocalisée (domain/server/ui).
+  * `core/` : **ports**, policies, config, cache profiles, validation, observabilité.
+  * `infra/` : **adaptateurs concrets** (Supabase, BetLab FastAPI…).
+  * `shared/` : design system, hooks/utilitaires purs, i18n.
 
-### ✅ Implémentations Complétées (Nov 2025)
+### Règles de dépendances
 
-**Configuration Next.js 16:**
-- ✅ `cacheComponents: true` activé (`next.config.ts:5`)
-- ✅ `experimental.ppr: 'incremental'` activé (`next.config.ts:40`)
-- ✅ `typescript.ignoreBuildErrors` retiré - Build strict
-- ✅ Turbopack prêt avec optimizePackageImports
+* `app` → consomme **façades** `modules/*` + `core/*` + `shared/*`.
+* `modules/*` → peut importer `core/*`, `infra/*`, `shared/*` (pas d’import transversal entre modules).
+* `core/*` → ne dépend **jamais** de `modules/*`.
+* `infra/*` → implémente des **ports** de `core/*` (pas de dépendance UI).
+* `shared/*` → sans dépendance montante.
 
-**Server Layer:**
-- ✅ Services serveur dans `server/services/` (fixtures, predictions, match-detail)
-- ✅ Auth guards dans `server/auth/guards.ts`
-- ✅ Cache tags centralisés dans `server/cache/tags.ts`
-- ✅ Server Actions de revalidation dans `server/actions/revalidate.ts`
-
-**Pages Next.js 16:**
-- ✅ Homepage convertie en Server Component async (`app/(public)/page.tsx`)
-- ✅ Match Detail converti en Server Component async (`app/(public)/match/[id]/page.tsx`)
-- ✅ PPR activé sur ces pages
-- ✅ Layouts séparés (public) et (private)
-
-**Features Architecture:**
-- ✅ Module fixtures (`features/fixtures/`)
-- ✅ Module predictions (`features/predictions/`)
-- ✅ Module match-detail (`features/match-detail/`)
-- ✅ Providers isolés (`providers/`)
-- ✅ Shared UI (`shared/ui/`)
-
-**API Layer:**
-- ✅ Route Handlers créés (`app/api/fixtures`, `app/api/predictions`)
-- ✅ Proxy modernisé avec guards (`proxy.ts`)
+Des règles ESLint “boundaries” (et un graphe `depcruise`) doivent l’assurer.
 
 ---
 
-## 2. Principes Next.js 16
+## 2) Principes Next.js 16
 
-### 2.1 Server Components First
+### 2.1 Proxy unifié (remplace middleware)
 
-**Règle d'Or** : Par défaut, tout est Server Component sauf si explicitement "use client"
+* Fichier **`src/proxy.ts`** (ou racine) : exécute du code **avant** la résolution de la requête ; permet rewrite/redirect/headers/réponses directes. L’ancien `middleware` est déprécié. ([Next.js][1])
+* Bon usage : garde **légère** (pas de fetch lents), mise en place d’entêtes de contexte, routage conditionnel.
 
-```typescript
-// ✅ BON - Server Component (default)
-export default async function Page() {
-  const data = await getServerData();
-  return <Client initialData={data} />;
-}
+### 2.2 Cache Components + directives
 
-// ❌ MAUVAIS - Client fetching
-"use client";
-export default function Page() {
-  const { data } = useQuery(...);
-  return <div>{data}</div>;
-}
-```
-
-### 2.2 Cache & Revalidation
-
-**Cache Strategy:**
-- Server Services utilisent `cache()` de React
-- `fetch` avec `next: { revalidate, tags }`
-- Invalidation via Server Actions + `revalidateTag()`
-
-```typescript
-// server/services/fixtures.ts
-export const getFixtures = cache(async (date: string) => {
-  const res = await fetch(`${env.API_URL}/fixtures?date=${date}`, {
-    next: {
-      revalidate: 300, // 5 minutes
-      tags: [CACHE_TAGS.fixtures(date)],
-    },
-  });
-  return res.json();
-});
-
-// server/actions/revalidate.ts
-export async function revalidateFixtures(date?: string) {
-  revalidateTag(CACHE_TAGS.fixtures(date));
-}
-```
+* Activer **`cacheComponents`** dans `next.config`. La mise en cache se pilote **au niveau composant/fonction** via `use cache`, `cacheTag()`, `cacheLife()`. Invalidation via `revalidateTag()` (Server Functions/Route Handlers). ([Next.js][2])
+* S’appuyer sur le **guide Caching** et la page **Caching & Revalidating** pour arbitrer time-based vs on-demand. ([Next.js][3])
 
 ### 2.3 PPR (Partial Pre-Rendering)
 
-**Usage:**
-```typescript
-// app/(public)/page.tsx
-export const experimental_ppr = true; // ✅ Active PPR
+* PPR fait partie du pipeline moderne (initial UI + parties dynamiques), à contrôler via le **caching** ci-dessus. ([Next.js][4])
 
-export default async function HomePage() {
-  const matches = await getTodayFixtures(); // Cached server fetch
+### 2.4 Build & DX
 
-  return (
-    <Suspense fallback={<Loading />}>
-      <ClientComponent initialData={matches} />
-    </Suspense>
-  );
-}
+* **React Compiler** (`reactCompiler`) pour limiter `useMemo/useCallback` manuels. ([Next.js][5])
+* **Turbopack File System Cache** pour accélérer dev/build (beta : activer d’abord en dev). ([Next.js][6])
+* **Codemod v16** : migre `middleware` → `proxy`, met à jour les options `turbopack`, retire des API instables. ([Next.js][7])
+
+---
+
+## 3) Structure des dossiers (canon)
+
 ```
+src/
+  proxy.ts                      # garde légère (Edge) : rewrites/redirects/headers
+  app/
+    (public|auth|marketing)/    # route groups + layouts dédiés
+    api/                        # route handlers minces (I/O, validation)
+      revalidate/route.ts       # POST -> revalidateTag/updateTag
+    layout.tsx
+    error.tsx
+    not-found.tsx
 
-### 2.4 React Query - Usage Limité
+  modules/
+    fixtures/
+      domain/                   # schémas Zod/TS, invariants
+      server/                   # queries/actions (Server) + directives cache
+      ui/                       # RSC + clients (.client.tsx), stories
+      cache/                    # tags & profils (-life) propres au module
+      tests/
+    predictions/
+    favorites/
+    onboarding/
 
-**Quand utiliser React Query:**
-- ✅ Polling temps réel (live scores)
-- ✅ Mutations client avec optimistic updates
-- ✅ Données nécessitant refetch fréquent côté client
+  core/
+    config/                     # env typées, feature flags, runtime
+    auth/                       # ports + guards (policies)
+    http/                       # clients fetch/axios typés
+    cache/                      # profils communs (cacheLife), helpers cacheTag
+    validation/                 # parse/validate (Zod) transverses
+    observability/              # Web Vitals, tracing, logs
 
-**Quand NE PAS utiliser:**
-- ❌ Data fetching initial (utiliser Server Components)
-- ❌ Données statiques ou semi-statiques
-- ❌ Données nécessaires au SEO
+  infra/
+    services/
+      supabase/                 # adapter SSR/Edge implémentant core/auth
+      betlab-api/               # client typé vers FastAPI (OpenAPI/codegen)
+      third-parties/
+  shared/
+    ui/                         # design system (primitives/composites)
+    hooks/
+    utils/
+    i18n/
 
-```typescript
-// ✅ BON - Polling live scores
-'use client';
-export function useLiveScores(fixtureIds: number[]) {
-  return useQuery({
-    queryKey: ['live-scores', fixtureIds],
-    queryFn: () => fetch('/api/fixtures/live').then(r => r.json()),
-    refetchInterval: 30000, // 30s
-  });
-}
+  tests/
+    e2e/                        # Playwright
+    contracts/                  # tests contrat API + schemas
 ```
 
 ---
 
-## 3. Structure des Dossiers
+## 4) Data fetching & cache (patterns)
 
-### 3.1 Organisation Actuelle
+### 4.1 Profilage du cache (central)
 
-```
-betlab-web/
-├── app/
-│   ├── (public)/              # Pages publiques
-│   │   ├── layout.tsx         # Server Component wrapper
-│   │   ├── layout.client.tsx  # Client navigation
-│   │   ├── page.tsx           # Homepage (Server Component async)
-│   │   ├── page.client.tsx    # Homepage UI client
-│   │   ├── match/
-│   │   │   └── [id]/
-│   │   │       ├── page.tsx           # Server Component
-│   │   │       ├── page.client.tsx    # UI client
-│   │   │       └── page.components.tsx # Loading/Error states
-│   │   └── matches/
-│   ├── (private)/             # Pages privées (auth required)
-│   │   ├── layout.tsx         # Avec QueryProvider
-│   │   ├── dashboard/
-│   │   ├── settings/
-│   │   ├── favorites/
-│   │   └── onboarding/
-│   ├── auth/                  # Pages auth (hors groupes)
-│   │   ├── login/
-│   │   ├── register/
-│   │   ├── forgot-password/
-│   │   └── reset-password/
-│   ├── api/                   # Route Handlers
-│   │   ├── fixtures/
-│   │   │   ├── route.ts
-│   │   │   └── [id]/route.ts
-│   │   └── predictions/
-│   │       └── route.ts
-│   ├── layout.tsx             # Root layout (fonts, providers racine)
-│   ├── globals.css
-│   └── manifest.ts
-│
-├── server/                    # Server-only code
-│   ├── services/
-│   │   ├── fixtures.ts        # fetch + cache() + tags
-│   │   ├── predictions.ts
-│   │   └── match-detail.ts
-│   ├── auth/
-│   │   └── guards.ts          # getSession, hasCompletedOnboarding, etc.
-│   ├── cache/
-│   │   └── tags.ts            # CACHE_TAGS, CACHE_TIMES
-│   └── actions/
-│       └── revalidate.ts      # Server Actions
-│
-├── features/                  # Feature modules (feature-first)
-│   ├── fixtures/
-│   │   ├── components/        # (à migrer depuis lib/components/home)
-│   │   ├── hooks/
-│   │   │   └── use-fixture-filters.ts  # Client-side filtering
-│   │   ├── types.ts
-│   │   └── index.ts
-│   ├── predictions/
-│   │   ├── components/
-│   │   ├── hooks/
-│   │   ├── types.ts
-│   │   └── index.ts
-│   └── match-detail/
-│       ├── components/
-│       ├── hooks/
-│       ├── types.ts
-│       └── index.ts
-│
-├── shared/
-│   ├── ui/
-│   │   └── index.ts           # Re-exports composants génériques
-│   ├── config/
-│   │   └── env.ts             # Variables d'env typées (Zod)
-│   └── utils/
-│
-├── providers/
-│   ├── query-provider.client.tsx
-│   ├── theme-provider.client.tsx
-│   └── index.ts
-│
-├── lib/                       # ⏳ Legacy - À migrer progressivement
-│   ├── components/            # → features/*/components/
-│   ├── hooks/                 # → features/*/hooks/ ou supprimer
-│   ├── core/
-│   │   └── services/
-│   │       └── http-service.ts  # ⏳ À supprimer (remplacé par server/services)
-│   └── stores/                # Zustand (à garder)
-│
-├── proxy.ts                   # Next.js 16 proxy (auth + onboarding)
-├── next.config.ts
-├── tsconfig.json
-├── package.json
-├── CLAUDE.md                  # ← Ce fichier
-├── MIGRATION_TODO.md          # Fichiers obsolètes à migrer
-└── TYPESCRIPT_ERRORS.md       # Erreurs TS à corriger
+`core/cache/profiles.ts`
+
+```ts
+import { cacheLife, cacheTag } from 'next/cache';
+
+export const TAGS = {
+  fixturesLive: () => cacheTag('fixtures:live'),
+  fixture: (id: number) => cacheTag(`fixture:${id}`),
+  prediction: (id: number) => cacheTag(`prediction:${id}`),
+};
+
+export const LIFE = {
+  live: cacheLife('short'),     // 15–60 s (ajuster)
+  metadata: cacheLife('medium') // ex. 10–15 min
+};
 ```
 
-### 3.2 Principes d'Organisation
+> Les valeurs précises (secondes) sont définies dans ce fichier, **pas** en dur dans les modules. (Voir API refs `cacheLife`, `cacheTag`.) ([Next.js][8])
 
-**Feature-First:**
-- Chaque feature est autonome (`fixtures/`, `predictions/`, etc.)
-- Composants, hooks, types groupés par feature
-- Facilite l'ajout/suppression de fonctionnalités
-- Réduit les conflits git et améliore la navigation
+### 4.2 Query serveur typique (RSC)
 
-**Séparation Server/Client:**
-- `server/` → Code exclusivement serveur (import "server-only")
-- `features/*/components/*.client.tsx` → Composants client explicites
-- `features/*/components/*.tsx` → Server Components par défaut
-- `providers/` → Providers client isolés dans (private)/layout
+`modules/fixtures/server/queries.ts`
 
----
+```ts
+import 'server-only';
+import { TAGS, LIFE } from '@/core/cache/profiles';
+import { env } from '@/core/config/env';
 
-## 4. Data Fetching & Cache
+export async function getTodayFixtures() {
+  'use cache';                  // directive locale
+  LIFE.live;                    // profil (pas obligatoire mais explicite)
+  TAGS.fixturesLive();          // attache un tag
 
-### 4.1 Server Services (Recommandé)
-
-**Localisation:** `server/services/*.ts`
-
-**Pattern:**
-```typescript
-import "server-only";
-import { cache } from "react";
-import { CACHE_TAGS, CACHE_TIMES } from "../cache/tags";
-import { env } from "@/shared/config/env";
-
-export const getFixtures = cache(async (date: string): Promise<Match[]> => {
-  const url = `${env.NEXT_PUBLIC_API_BASE_URL}/api/fixtures?date=${date}`;
-
-  const response = await fetch(url, {
-    next: {
-      revalidate: CACHE_TIMES.fixtures, // 5 minutes
-      tags: [CACHE_TAGS.fixtures(date)],
-    },
+  const res = await fetch(`${env.API_URL}/fixtures/today`, {
+    next: { tags: ['fixtures:live'] }
   });
-
-  if (!response.ok) throw new Error('Failed to fetch');
-
-  const data = await response.json();
-  return transformFixtures(data);
-});
+  if (!res.ok) throw new Error('Failed to fetch fixtures');
+  return res.json();
+}
 ```
 
-### 4.2 Cache Tags & Revalidation
+> La directive **`use cache`** + **tags** permet une invalidation sélective via `revalidateTag()`. ([Next.js][9])
 
-**Tags Centralisés:** `server/cache/tags.ts`
+### 4.3 Revalidation on-demand
 
-```typescript
-export const CACHE_TAGS = {
-  fixtures: (date?: string) => date ? `fixtures-${date}` : 'fixtures',
-  predictions: (fixtureId?: number) => fixtureId ? `predictions-${fixtureId}` : 'predictions',
-  matchDetail: (id: number) => `match-detail-${id}`,
-  // ...
-};
+`src/app/api/revalidate/route.ts`
 
-export const CACHE_TIMES = {
-  live: 30,        // 30 seconds
-  fixtures: 300,   // 5 minutes
-  predictions: 600, // 10 minutes
-  // ...
-};
-```
-
-**Revalidation:** `server/actions/revalidate.ts`
-
-```typescript
-'use server';
+```ts
+import { NextRequest, NextResponse } from 'next/server';
 import { revalidateTag } from 'next/cache';
 
-export async function revalidateFixtures(date?: string) {
-  revalidateTag(CACHE_TAGS.fixtures(date));
-  return { success: true };
+export async function POST(req: NextRequest) {
+  const { tag } = await req.json();
+  // TODO: Auth + signature
+  await revalidateTag(tag);
+  return NextResponse.json({ ok: true });
 }
 ```
 
-### 4.3 Route Handlers (Fallback)
+> **Note** : `revalidateTag()` n’est **pas** disponible dans `proxy.ts` (uniquement Server Functions/Route Handlers). ([Next.js][10])
 
-**Usage:** Fallback pour composants legacy ou client-side polling
+### 4.4 Quand éviter le cache
 
-```typescript
-// app/api/fixtures/route.ts
-import { NextRequest, NextResponse } from 'next/server';
-import { getFixtures } from '@/server/services/fixtures';
-
-export async function GET(request: NextRequest) {
-  const date = request.nextUrl.searchParams.get('date') || new Date().toISOString().split('T')[0];
-
-  try {
-    const fixtures = await getFixtures(date);
-    return NextResponse.json(fixtures, {
-      headers: { 'Cache-Control': 'public, s-maxage=300' },
-    });
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch' }, { status: 500 });
-  }
-}
-```
+* Requêtes **user-scoped** sensibles à cookies/headers → `use cache: private` ou `no-store`. ([Next.js][9])
+* Proxies externes → segment/handler **dynamique** (ex. `revalidate = 0`) si nécessaire. ([Next.js][11])
 
 ---
 
-## 5. State Management
+## 5) Auth & sécurité
 
-### 5.1 Hiérarchie
+### 5.1 `proxy.ts` (Edge) — rôle
 
-1. **Server State** (Priorité 1) → Server Components + `cache()`
-2. **URL State** → searchParams, pathname
-3. **Client State Local** → useState, useReducer
-4. **Client State Global** → Zustand (préférences UI)
-5. **Remote Client State** → React Query (polling temps réel uniquement)
+* Redirections (login/onboarding), **headers de contexte** (`x-tenant`, `x-locale`), A/B testing léger, blocage de routes publiques/privées de base.
+* **Éviter** : fetch lents, appels DB, logique complexe d’auth (faites-la dans Server Functions/Route Handlers). ([Next.js][1])
 
-### 5.2 Zustand - State Local Persisté
+### 5.2 Guards réutilisables (Node)
 
-**Usage:** Préférences utilisateur, état UI (sport actif, thème, etc.)
+`core/auth/guards.ts` : `getSession()`, `requireRole()`, `hasCompletedOnboarding()`.
+Adapter Supabase en `infra/services/supabase/*` (ports → adapters).
 
-```typescript
-// lib/stores/sport-store.ts
-import { create } from 'zustand';
+### 5.3 Sécurité technique
 
-export const useSportStore = create<SportStore>((set) => ({
-  activeSport: SportType.FOOTBALL,
-  setActiveSport: (sport) => set({ activeSport: sport }),
-}));
-```
-
-### 5.3 React Query - Polling Temps Réel
-
-**Setup:** Provider dans `app/(private)/layout.tsx` uniquement
-
-```typescript
-// providers/query-provider.client.tsx
-'use client';
-export function QueryProvider({ children }) {
-  const [queryClient] = useState(() => new QueryClient({
-    defaultOptions: {
-      queries: {
-        staleTime: 60 * 1000,
-        refetchOnWindowFocus: false,
-      },
-    },
-  }));
-  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
-}
-```
+* `server-only` partout côté serveur.
+* Cookies httpOnly pour tokens.
+* Zod pour toutes entrées/sorties HTTP.
+* Headers sécurité (CSP/Referrer/Permissions/HSTS).
+* Rate-limiting sur `app/api/*`.
 
 ---
 
-## 6. Authentification & Sécurité
+## 6) State management (priorités)
 
-### 6.1 Proxy Next.js 16
-
-**Fichier:** `proxy.ts`
-
-```typescript
-import { NextResponse } from 'next/server';
-import { getSession, hasCompletedOnboarding, isPublicRoute, shouldSkipProxy } from '@/server/auth/guards';
-
-export async function proxy(req: NextRequest) {
-  const pathname = req.nextUrl.pathname;
-
-  if (shouldSkipProxy(pathname)) return NextResponse.next();
-
-  const session = await getSession(...);
-  const isAuthenticated = !!session;
-
-  // Logique auth + onboarding
-  // ...
-}
-```
-
-### 6.2 Guards Réutilisables
-
-**Fichier:** `server/auth/guards.ts`
-
-```typescript
-import "server-only";
-
-export async function getSession(accessToken: string, refreshToken: string) {
-  // Create Supabase client, set session, return
-}
-
-export async function hasCompletedOnboarding(userId: string): Promise<boolean> {
-  // Check profiles table
-}
-
-export function isPublicRoute(pathname: string): boolean {
-  // Check against public routes list
-}
-
-export function shouldSkipProxy(pathname: string): boolean {
-  // API, static, _next routes
-}
-```
-
-### 6.3 Sécurité
-
-- ✅ `server-only` sur tous les services serveur
-- ✅ Variables d'env typées et validées (Zod)
-- ✅ CORS géré via headers dans Route Handlers
-- ✅ Tokens Supabase dans cookies httpOnly
-- ⏳ Rate limiting à ajouter sur Route Handlers
+1. **Server state** → RSC + `use cache`
+2. **URL state** → `searchParams`
+3. **Local client** → `useState`/`useReducer`
+4. **Global client** → Zustand (préférences UI)
+5. **Remote client** → React Query **uniquement** pour polling temps réel / optimistic UI
 
 ---
 
-## 7. Workflow Développement
-
-### 7.1 Ajouter une Nouvelle Feature
+## 7) Workflow dev — ajouter une feature
 
 ```bash
-# 1. Créer la structure
-mkdir -p features/nouvelle-feature/{components,hooks}
-touch features/nouvelle-feature/{types.ts,index.ts}
+# 1) Squelette
+mkdir -p src/modules/<feature>/{domain,server,ui,cache,tests}
 
-# 2. Créer le service serveur si nécessaire
-touch server/services/nouvelle-feature.ts
-
-# 3. Ajouter les tags de cache
-# Éditer server/cache/tags.ts
-
-# 4. Créer les composants
-touch features/nouvelle-feature/components/feature-component.client.tsx
-
-# 5. Exporter depuis index.ts
-# Éditer features/nouvelle-feature/index.ts
-```
-
-### 7.2 Convertir un Composant en Server Component
-
-```typescript
-// AVANT - Client Component
-'use client';
-export default function Page() {
-  const { data } = useQuery(...);
-  return <div>{data}</div>;
-}
-
-// APRÈS - Server Component + Client UI
-// page.tsx (Server)
-export default async function Page() {
-  const data = await getServerData();
-  return <ClientComponent initialData={data} />;
-}
-
-// page.client.tsx (Client)
-'use client';
-export function ClientComponent({ initialData }) {
-  // UI interactions only
-  return <div>{initialData}</div>;
-}
-```
-
-### 7.3 Build & Validation
-
-```bash
-# Type checking
-npx tsc --noEmit
-
-# Build Next.js
-pnpm build
-
-# Dev mode
-pnpm dev
-
-# Lint
-pnpm lint
+# 2) Schémas & types (domain)
+# 3) Queries/actions (server) avec 'use cache' + tags + profils LIFE
+# 4) Composants UI (RSC par défaut, .client.tsx si nécessaire)
+# 5) Route handler (optionnel) minces dans app/api/
+# 6) Tests unit/contract + règles ESLint boundaries
 ```
 
 ---
 
-## 8. Migration en Cours
+## 8) Build & perf
 
-### 8.1 Fichiers Obsolètes
+* `next.config.ts` :
 
-Voir `MIGRATION_TODO.md` pour la liste complète.
-
-**À Supprimer Progressivement:**
-- ⏳ `lib/core/services/http-service.ts` → Remplacé par server/services + Route Handlers
-- ⏳ `lib/hooks/use-fixtures.ts` → Remplacé par server/services/fixtures.ts
-- ⏳ `lib/hooks/use-predictions.ts` → Remplacé par server/services/predictions.ts
-- ⏳ `lib/hooks/use-match-detail.ts` → Remplacé par server/services/match-detail.ts
-
-**Composants à Migrer:**
-- ⏳ `lib/components/home/*` → `features/fixtures/components/`
-- ⏳ `lib/components/match-detail/*` → `features/match-detail/components/`
-
-### 8.2 Erreurs TypeScript
-
-Voir `TYPESCRIPT_ERRORS.md` pour le détail.
-
-**Principales:**
-- Types incompatibles entre lib/ et features/ (en cours de résolution)
-- Imports obsolètes dans composants legacy
-- Erreurs liées aux types auto-générés `.next/types/` (se règlent au rebuild)
-
-**Critères de Suppression:**
-- ✅ Aucun import actif
-- ✅ Fonctionnalité remplacée et testée
-- ✅ Build passe
+  * `cacheComponents: true` (piloter le rendu via directives/tags). ([Next.js][2])
+  * `reactCompiler: true` (optim du rendu). ([Next.js][5])
+  * `experimental.turbopackFileSystemCacheForDev: true` (d'abord en dev ; beta). ([Next.js][6])
+  * ⚠️ **Note** : `turbopackFileSystemCacheForBuild` est **désactivé** car il nécessite la version canary de Next.js. Next.js 16.0.1 stable ne le supporte pas encore.
+* Turbopack réglages complémentaires via `turbopack` (migration depuis `experimental.turbo`). ([Next.js][12])
 
 ---
 
-## 9. Références
+## 9) Migration legacy (facultatif)
 
-### 9.1 Documentation Officielle
-
-- [Next.js 16 Blog](https://nextjs.org/blog/next-16) - Cache Components, PPR, Proxy
-- [Next.js App Router - Data Fetching](https://nextjs.org/docs/app/building-your-application/data-fetching)
-- [Next.js Proxy File Convention](https://nextjs.org/docs/app/building-your-application/routing/proxy)
-- [React 19 Docs](https://react.dev/blog/2024/12/05/react-19)
-- [Next.js Caching](https://nextjs.org/docs/app/building-your-application/caching)
-
-### 9.2 Ressources Internes
-
-- `MIGRATION_TODO.md` - Plan de migration progressive
-- `TYPESCRIPT_ERRORS.md` - Erreurs TS à corriger
-- `API_PROBABILITIES_GUIDE.md` - Documentation API
-- `API_RESPONSES_EXAMPLES.json` - Exemples de réponses API
+* `features/*` → `modules/*` (déplacer `components` → `ui`, hooks locaux → `ui` ou `shared/hooks` s’ils sont transverses).
+* `server/services/*` → `modules/*/server` (+ `core/cache/profiles.ts`).
+* Remplacer tout TTL **en clair** par `LIFE.*` et tags par `TAGS.*`.
 
 ---
 
-## ✅ Checklist Avant Commit
+## 10) Références
 
-- [ ] Types TypeScript valides (`npx tsc --noEmit`)
-- [ ] Build Next.js réussit (`pnpm build`)
-- [ ] Nouveaux services utilisent `server-only`
-- [ ] Nouveaux composants client ont `"use client"`
-- [ ] Tags de cache ajoutés si nouvelles données
-- [ ] Documentation mise à jour (CLAUDE.md)
-- [ ] Tests passent (si applicable)
+* **Proxy file convention** (remplace middleware) : Next.js docs. ([Next.js][1])
+* **Cache Components / directives / tags / life / revalidateTag** : API & guides Next.js. ([Next.js][2])
+* **PPR (pipeline)** : Getting started. ([Next.js][4])
+* **React Compiler** : config Next. ([Next.js][5])
+* **Turbopack FS cache** (beta) : docs + blog Next 16. ([Next.js][6])
+* **Upgrading v16** (codemod, migration middleware→proxy) : guide officiel. ([Next.js][7])
 
 ---
 
-**Dernière mise à jour:** 2025-11-07
-**Version Architecture:** 2.0 (Post-Migration Next.js 16)
-**Auteur:** Claude Code (Migration Agent)
+### Checklist PR
+
+* [ ] Types OK (`tsc --noEmit`)
+* [ ] Build OK (`pnpm build`)
+* [ ] Nouvelles queries → `use cache` + `TAGS` + `LIFE`
+* [ ] Handlers/API minces, validation Zod
+* [ ] Aucune import cross-module interdit (ESLint boundaries)
+* [ ] Tests unit/contract ajoutés
+* [ ] Docs mises à jour (ce fichier)
+
+**Dernière mise à jour** : 2025-11-08
+**Version architecture** : 3.0 (Next 16 + modules)
+
+[1]: https://nextjs.org/docs/app/api-reference/file-conventions/proxy?utm_source=chatgpt.com "File-system conventions: proxy.js"
+[2]: https://nextjs.org/docs/app/api-reference/config/next-config-js/cacheComponents?utm_source=chatgpt.com "next.config.js: cacheComponents"
+[3]: https://nextjs.org/docs/app/guides/caching?utm_source=chatgpt.com "Guides: Caching"
+[4]: https://nextjs.org/docs/app/getting-started/cache-components?utm_source=chatgpt.com "Getting Started: Cache Components"
+[5]: https://nextjs.org/docs/app/api-reference/config/next-config-js/reactCompiler?utm_source=chatgpt.com "next.config.js: reactCompiler"
+[6]: https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopackFileSystemCache?utm_source=chatgpt.com "next.config.js: turbopackFileSystemCache"
+[7]: https://nextjs.org/docs/app/guides/upgrading/version-16?utm_source=chatgpt.com "Upgrading: Version 16"
+[8]: https://nextjs.org/docs/app/api-reference/functions/cacheLife?utm_source=chatgpt.com "Functions: cacheLife"
+[9]: https://nextjs.org/docs/app/api-reference/directives/use-cache?utm_source=chatgpt.com "Directives: use cache"
+[10]: https://nextjs.org/docs/app/api-reference/functions/revalidateTag?utm_source=chatgpt.com "Functions: revalidateTag"
+[11]: https://nextjs.org/docs/app/api-reference/file-conventions/route-segment-config?utm_source=chatgpt.com "File-system conventions: Route Segment Config"
+[12]: https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack?utm_source=chatgpt.com "turbopack - next.config.js"

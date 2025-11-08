@@ -4,7 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AppProviders } from "@/app/providers";
 
-export const runtime = "nodejs";
+// ⚠️ runtime = "nodejs" removed - incompatible with cacheComponents in Next.js 16
 
 const WebVitalsReporter = dynamic(
   () => import("@/core/observability/web-vitals-reporter").then((m) => m.WebVitalsReporter)
@@ -12,10 +12,6 @@ const WebVitalsReporter = dynamic(
 
 const InstallPrompt = dynamic(
   () => import("@/shared/pwa/install-prompt").then((m) => m.InstallPrompt)
-);
-
-const ResponsiveIndicator = dynamic(
-  () => import("@/shared/dev/responsive-indicator").then((m) => m.ResponsiveIndicator)
 );
 
 const ServiceWorkerRegister = dynamic(
@@ -50,6 +46,7 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://betlab.app'),
   title: {
     default: 'BetLab - Pronostics Sportifs IA',
     template: '%s | BetLab',
@@ -136,7 +133,6 @@ export default function RootLayout({
             <InstallPrompt />
           </>
         )}
-        {process.env.NODE_ENV === "development" && <ResponsiveIndicator />}
       </body>
     </html>
   );

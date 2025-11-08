@@ -22,7 +22,7 @@ async function executeRequest<TResponse, TBody = unknown>(
   path: string,
   options: HttpRequestOptions<TBody> = {}
 ): Promise<HttpResponse<TResponse>> {
-  const { method = "GET", headers, body, searchParams } = options;
+  const { method = "GET", headers, body, searchParams, cache } = options;
   const url = buildUrl(path, searchParams);
 
   const response = await fetch(url, {
@@ -32,14 +32,21 @@ async function executeRequest<TResponse, TBody = unknown>(
       ...(headers || {}),
     },
     body: body ? JSON.stringify(body) : undefined,
-    cache: method === "GET" ? "force-cache" : undefined,
+    cache: cache ?? (method === "GET" ? "force-cache" : undefined),
   });
 
   const data = (await response.json()) as TResponse;
 
   if (!response.ok) {
-    const error = new Error(`BetLab API error ${response.status}: ${response.statusText}`);
-    console.error(error.message, data);
+    const error = new Error(`BetLab API error ${response.status}: ${response.statusText}`) as Error & { status: number };
+    error.status = response.status;
+    // Only log errors for non-404/500 status codes
+    // 404 are expected for missing predictions
+    // 500 are backend issues that don't affect app functionality (handled by Promise.allSettled)
+    if (response.status !== 404 && response.status !== 500) {
+      console.error(error.message, data);
+    }
+    // No logging for 404/500 - they're handled gracefully by callers
     throw error;
   }
 

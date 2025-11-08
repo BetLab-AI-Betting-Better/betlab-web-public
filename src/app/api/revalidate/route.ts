@@ -4,7 +4,7 @@ import "server-only";
 import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag, updateTag } from "next/cache";
 
-export const runtime = "nodejs";
+// ⚠️ runtime = "nodejs" removed - incompatible with cacheComponents in Next.js 16
 
 type RevalidatePayload = {
   tag?: string;

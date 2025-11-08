@@ -1,6 +1,7 @@
 import "server-only";
 
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 import { createClient, type Session, type SupabaseClient } from "@supabase/supabase-js";
 
 import { env } from "@/core/config/env";
@@ -41,6 +42,7 @@ export async function getSessionFromTokens(
 }
 
 export async function getServerSupabaseSessionClient() {
+  await connection(); // Mark route as dynamic before accessing cookies
   const cookieStore = await cookies();
   const accessToken = cookieStore.get(ACCESS_TOKEN_COOKIE)?.value;
   const refreshToken = cookieStore.get(REFRESH_TOKEN_COOKIE)?.value;
@@ -64,6 +66,7 @@ export async function getServerSupabaseSessionClient() {
 }
 
 export async function getCurrentSession(): Promise<Session | null> {
+  await connection(); // Mark route as dynamic before accessing cookies
   const cookieStore = await cookies();
   const accessToken = cookieStore.get(ACCESS_TOKEN_COOKIE)?.value;
   const refreshToken = cookieStore.get(REFRESH_TOKEN_COOKIE)?.value;

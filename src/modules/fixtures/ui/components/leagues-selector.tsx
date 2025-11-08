@@ -2,7 +2,6 @@
 
 import Image from "next/image"
 import { Grid3x3, Star } from "lucide-react"
-import { LEAGUE_LOGO_BLUR } from "@/shared/utils/image-loader"
 import { cn } from "@/shared/utils"
 
 interface League {
@@ -116,8 +115,6 @@ export function LeaguesSelector({ leagues, selectedLeagueId, onLeagueChange }: L
                       className="object-contain"
                       loading="lazy"
                       quality={75}
-                      placeholder="blur"
-                      blurDataURL={LEAGUE_LOGO_BLUR}
                     />
                   </div>
                 ) : (

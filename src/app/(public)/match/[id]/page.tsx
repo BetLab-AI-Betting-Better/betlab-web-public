@@ -17,12 +17,10 @@ import { MatchDetailClient } from "./page.client";
 import { LoadingSkeleton, ErrorState } from "./page.components";
 
 interface MatchDetailPageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
-export default async function MatchDetailPage({ params }: MatchDetailPageProps) {
-  const { id } = params;
-
+async function MatchDetailContent({ id }: { id: string }) {
   let match: Awaited<ReturnType<typeof getMatchDetail>>;
 
   try {
@@ -35,9 +33,15 @@ export default async function MatchDetailPage({ params }: MatchDetailPageProps) 
     );
   }
 
+  return <MatchDetailClient match={match} />;
+}
+
+export default async function MatchDetailPage({ params }: MatchDetailPageProps) {
+  const { id } = await params;
+
   return (
     <Suspense fallback={<LoadingSkeleton />}>
-      <MatchDetailClient match={match} />
+      <MatchDetailContent id={id} />
     </Suspense>
   );
 }

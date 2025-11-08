@@ -32,6 +32,8 @@ const nextConfig: NextConfig = {
     deviceSizes: [375, 414, 768, 1024, 1440],
     imageSizes: [16, 32, 48, 64, 96],
     minimumCacheTTL: 60,
+    // Disable image optimization in development to avoid timeouts with slow external APIs
+    unoptimized: process.env.NODE_ENV === 'development',
   },
 
   // Optimisations expérimentales
@@ -50,7 +52,7 @@ const nextConfig: NextConfig = {
     },
 
     turbopackFileSystemCacheForDev: true,
-    turbopackFileSystemCacheForBuild: true,
+    // turbopackFileSystemCacheForBuild: true, // ⚠️ Requires Next.js canary
   },
 
   // Compiler optimizations
