@@ -7,36 +7,27 @@ import { NextRequest, NextResponse } from 'next/server'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://fastapi-production-2b94.up.railway.app'
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
-) {
-  const { path } = await params
-  return proxyRequest(request, path, 'GET')
+type RouteContext = { params: Promise<{ path: string[] }> }
+
+async function handleRequest(request: NextRequest, context: RouteContext, method: string) {
+  const { path } = await context.params
+  return proxyRequest(request, path, method)
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
-) {
-  const { path } = await params
-  return proxyRequest(request, path, 'POST')
+export async function GET(request: NextRequest, context: RouteContext) {
+  return handleRequest(request, context, 'GET')
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
-) {
-  const { path } = await params
-  return proxyRequest(request, path, 'PUT')
+export async function POST(request: NextRequest, context: RouteContext) {
+  return handleRequest(request, context, 'POST')
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
-) {
-  const { path } = await params
-  return proxyRequest(request, path, 'DELETE')
+export async function PUT(request: NextRequest, context: RouteContext) {
+  return handleRequest(request, context, 'PUT')
+}
+
+export async function DELETE(request: NextRequest, context: RouteContext) {
+  return handleRequest(request, context, 'DELETE')
 }
 
 async function proxyRequest(

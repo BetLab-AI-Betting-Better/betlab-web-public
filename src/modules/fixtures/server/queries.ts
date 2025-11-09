@@ -1,6 +1,5 @@
 import "server-only";
 import { cache } from "react";
-import { cacheLife, cacheTag } from "next/cache";
 import { headers } from "next/headers";
 import { betlabFetch } from "@/infra/services/betlab-api/client";
 import {
@@ -9,7 +8,6 @@ import {
   type PredictionData,
 } from "@/modules/predictions/server/queries";
 import { promiseBatch } from "@/shared/utils";
-import { FIXTURES_CACHE } from "../cache/profile";
 import type { Match, MatchWithPrediction } from "../domain/types";
 
 interface ApiFixtureResponse {
@@ -86,12 +84,9 @@ function transformFixture(item: ApiFixtureResponse): Match {
 }
 
 export const getFixtures = cache(async (date: string): Promise<Match[]> => {
-  'use cache';
-  cacheTag(FIXTURES_CACHE.tags.byDate(date));
-  cacheLife(FIXTURES_CACHE.life.byDate);
 
   // Disable Next.js fetch cache as response is > 2MB
-  // Cache is handled by 'use cache' directive instead
+  // React cache layer handles memoization instead
   const data = await betlabFetch<ApiFixtureResponse[]>("/api/fixtures", {
     searchParams: { date },
     cache: 'no-store',
@@ -100,12 +95,9 @@ export const getFixtures = cache(async (date: string): Promise<Match[]> => {
 });
 
 export const getLiveFixtures = cache(async (): Promise<Match[]> => {
-  'use cache';
-  cacheTag(FIXTURES_CACHE.tags.live());
-  cacheLife(FIXTURES_CACHE.life.live);
 
   // Disable Next.js fetch cache as response might be > 2MB
-  // Cache is handled by 'use cache' directive instead
+  // React cache layer handles memoization instead
   const data = await betlabFetch<ApiFixtureResponse[]>("/api/fixtures/live", {
     cache: 'no-store',
   });
@@ -135,7 +127,7 @@ export const getTodayFixturesWithPredictions = async (options?: {
 
   // Fetch predictions in batches to avoid overwhelming the API
   // Max 5 concurrent requests to prevent 429 Rate Limit errors
-  // Only successful predictions will be cached (getPrediction uses 'use cache')
+  // Only successful predictions will be cached (getPrediction is memoized with React cache)
   const predictionsResults = await promiseBatch(
     matches,
     (match) => getPrediction(match.fixtureId, predictionType),
@@ -144,11 +136,11 @@ export const getTodayFixturesWithPredictions = async (options?: {
 
   return matches.map((match, index) => {
     const result = predictionsResults[index];
-    const prediction = result.status === "fulfilled" ? result.value : null;
+    const prediction = result.status === "fulfilled" ? result.value : undefined;
 
     return {
       ...match,
-      prediction,
+      prediction: prediction ?? undefined,
     };
   });
 };

@@ -1,6 +1,5 @@
 import "server-only";
 import { cache } from "react";
-import { cacheLife, cacheTag } from "next/cache";
 import { betlabFetch } from "@/infra/services/betlab-api/client";
 import {
   transform1X2ToPrediction,
@@ -15,7 +14,6 @@ import {
   type APIMarketsResponse,
   type APIOddsResponse,
 } from "@/shared/hooks/use-predictions-transforms";
-import { PREDICTIONS_CACHE } from "../cache/profile";
 
 export type PredictionType =
   | "match_result"
@@ -155,9 +153,6 @@ export const getPredictions = async (
 
 export const getPrediction = cache(
   async (fixtureId: number, type: PredictionType): Promise<PredictionData | null> => {
-    'use cache';
-    cacheTag(PREDICTIONS_CACHE.tags.byFixture(fixtureId));
-    cacheLife(PREDICTIONS_CACHE.life.default);
     return fetchSinglePrediction(fixtureId, type);
   }
 );

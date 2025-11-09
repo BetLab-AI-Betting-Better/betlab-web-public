@@ -13,7 +13,7 @@ import type {
   SignUpInput,
   ResetPasswordInput,
   UpdatePasswordInput,
-} from "../types";
+} from "../domain/types";
 
 /**
  * Transform Supabase User to AuthUser

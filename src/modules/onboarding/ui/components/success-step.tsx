@@ -12,7 +12,7 @@ import { useWindowSize } from 'react-use';
 import { CheckCircle2, Sparkles } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
 import { cn } from '@/shared/utils';
-import { completeOnboardingAction, type CompleteOnboardingInput } from '../server/actions';
+import { completeOnboardingAction, type CompleteOnboardingInput } from '../../server/actions';
 import { toast } from 'sonner';
 
 interface SuccessStepProps {

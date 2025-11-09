@@ -1,0 +1,6 @@
+export { MatchHeader } from "./match-header"
+export { TabsNavigation } from "./tabs-navigation"
+export { PredictionsTab } from "./predictions-tab"
+export { AnalysisTab } from "./analysis-tab"
+export { ValueBetsTab } from "./value-bets-tab"
+export type { TabId } from "./tabs-navigation"

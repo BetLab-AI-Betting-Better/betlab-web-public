@@ -171,6 +171,11 @@ const MatchCardCompact = React.forwardRef<HTMLDivElement, MatchCardCompactProps>
             <span className="text-sm font-bold text-center truncate mt-1.5 w-full px-1">
               {match.homeTeam.name}
             </span>
+            {match.prediction?.type === "match_result" && (
+              <span className="text-[10px] text-muted-foreground mt-0.5">
+                xG: {match.prediction.xG.home.toFixed(2)}
+              </span>
+            )}
           </div>
 
           {/* Score/Time Center */}
@@ -217,6 +222,11 @@ const MatchCardCompact = React.forwardRef<HTMLDivElement, MatchCardCompactProps>
             <span className="text-sm font-bold text-center truncate mt-1.5 w-full px-1">
               {match.awayTeam.name}
             </span>
+            {match.prediction?.type === "match_result" && (
+              <span className="text-[10px] text-muted-foreground mt-0.5">
+                xG: {match.prediction.xG.away.toFixed(2)}
+              </span>
+            )}
           </div>
         </div>
 

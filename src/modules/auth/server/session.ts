@@ -1,12 +1,13 @@
 import "server-only";
 
+import { cache } from "react";
 import type { CurrentUser } from "@/core/auth/types";
 import {
   createServerSupabaseClient,
   getCurrentSession,
 } from "@/infra/services/supabase/server-client";
 
-async function fetchOnboardingStatus(userId: string): Promise<boolean> {
+const fetchOnboardingStatus = cache(async (userId: string): Promise<boolean> => {
   const supabase = createServerSupabaseClient();
 
   try {
@@ -26,13 +27,13 @@ async function fetchOnboardingStatus(userId: string): Promise<boolean> {
     console.error("Unexpected onboarding status error:", error);
     return true;
   }
-}
+});
 
 export async function hasCompletedOnboarding(userId: string): Promise<boolean> {
   return fetchOnboardingStatus(userId);
 }
 
-export async function getCurrentUser(): Promise<CurrentUser | null> {
+export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
   const session = await getCurrentSession();
 
   if (!session?.user) {
@@ -46,4 +47,4 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     email: session.user.email ?? null,
     onboardingCompleted,
   };
-}
+});

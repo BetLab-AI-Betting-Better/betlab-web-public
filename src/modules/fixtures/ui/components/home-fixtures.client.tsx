@@ -11,6 +11,7 @@
 
 "use client";
 
+import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
   CalendarWidget,
@@ -30,6 +31,19 @@ interface HomeFixturesClientProps {
 
 export function HomeFixturesClient({ initialMatches }: HomeFixturesClientProps) {
   const router = useRouter();
+  const normalizedMatches = useMemo<MatchWithPrediction[]>(() => {
+    return initialMatches.map((match) => {
+      const kickoffSource = match.kickoffTime;
+      if (typeof kickoffSource === "string" || typeof kickoffSource === "number") {
+        const parsedDate = new Date(kickoffSource);
+        return {
+          ...match,
+          kickoffTime: Number.isNaN(parsedDate.getTime()) ? new Date() : parsedDate,
+        };
+      }
+      return match;
+    });
+  }, [initialMatches]);
 
   // Client-side filtering (no fetch, just local state)
   const {
@@ -50,7 +64,7 @@ export function HomeFixturesClient({ initialMatches }: HomeFixturesClientProps) 
     leagues,
     filteredMatches,
     matchCountsByDate,
-  } = useFixtureFilters(initialMatches);
+  } = useFixtureFilters(normalizedMatches);
 
   // TODO: Fetch favorites server-side and pass as props
   const matchesWithState = filteredMatches;

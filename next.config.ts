@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  cacheComponents: true,
+  // Component caching conflicts with our dynamic match data (search params, auth)
+  cacheComponents: false,
   reactCompiler: true,
 
   // Configuration des images pour optimisation

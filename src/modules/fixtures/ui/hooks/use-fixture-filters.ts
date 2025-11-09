@@ -12,7 +12,7 @@
 
 import { useState, useMemo } from "react";
 import { useSportStore } from "@/shared/hooks/stores/sport-store";
-import type { Match, LeagueInfo, MatchCountByDate } from "../types";
+import type { Match, LeagueInfo, MatchCountByDate } from "../../domain/types";
 
 // Type definitions for filters
 export type PredictionType =

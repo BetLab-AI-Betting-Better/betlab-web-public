@@ -1,38 +1,64 @@
 /**
  * Match Detail Client Component
  *
- * ⚠️ SIMPLIFIED VERSION - Legacy components removed
- * Match detail components need to be migrated to features/match-detail/components/
- *
- * TODO: Migrate match-detail components to features-first architecture
+ * Interactive match detail page with tabs navigation
  */
 
 "use client";
 
-import type { MatchDetail } from "@/modules/match-detail";
+import { useState } from "react";
+import {
+  MatchHeader,
+  TabsNavigation,
+  PredictionsTab,
+  AnalysisTab,
+  ValueBetsTab,
+  type TabId,
+  type MatchDetail
+} from "@/modules/match-detail";
 
 interface MatchDetailClientProps {
   match: MatchDetail;
 }
 
 export function MatchDetailClient({ match }: MatchDetailClientProps) {
-  return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-2xl font-bold mb-4">
-          {match.homeTeam.name} vs {match.awayTeam.name}
-        </h1>
+  const [activeTab, setActiveTab] = useState<TabId>("predictions");
 
-        <div className="bg-card p-6 rounded-lg">
-          <p className="text-muted-foreground mb-4">
-            Match detail page - Components need migration to features/match-detail/
-          </p>
-          <div className="space-y-2 text-sm">
-            <p><strong>League:</strong> {match.league.name}</p>
-            <p><strong>Date:</strong> {new Date(match.kickoffTime).toLocaleString()}</p>
-            <p><strong>Fixture ID:</strong> {match.fixtureId}</p>
+  return (
+    <div className="min-h-screen bg-background pb-20">
+      {/* Match Header */}
+      <MatchHeader match={match} />
+
+      {/* Tabs Navigation */}
+      <TabsNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+
+      {/* Tab Content */}
+      <div className="container mx-auto">
+        {activeTab === "predictions" && (
+          <PredictionsTab match={match} predictions={match.predictions} />
+        )}
+
+        {activeTab === "analysis" && (
+          <AnalysisTab
+            match={match}
+            prediction={match.predictions?.find(p => p.type === "match_result")}
+          />
+        )}
+
+        {activeTab === "value" && (
+          <ValueBetsTab match={match} predictions={match.predictions} />
+        )}
+
+        {activeTab === "h2h" && (
+          <div className="p-4">
+            <div className="bg-card border rounded-lg p-6">
+              <h3 className="text-lg font-semibold mb-4">Historique (H2H)</h3>
+              <p className="text-muted-foreground">
+                L'historique des confrontations sera bientôt disponible
+              </p>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

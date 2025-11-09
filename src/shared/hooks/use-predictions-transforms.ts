@@ -31,8 +31,21 @@ export interface API1X2Response {
     mu_away_recent?: number
     form_index_home?: number
     form_index_away?: number
+    injury_factor_home?: number
+    injury_factor_away?: number
+    defense_factor_home?: number
+    defense_factor_away?: number
+    head_to_head_bias?: number
+    head_to_head_goal_delta?: number
     rating_home?: number
     rating_away?: number
+    rest_hours_home?: number
+    rest_hours_away?: number
+    fatigue_factor_home?: number
+    fatigue_factor_away?: number
+    travel_distance_km?: number
+    travel_factor_away?: number
+    max_goals?: number
     [key: string]: string | number | boolean | null | undefined
   }
   markets: {
@@ -140,8 +153,22 @@ export interface MatchResultPrediction {
   homeWin: { probability: number; odds: number; bookmakerOdds?: number; edge?: number }
   draw: { probability: number; odds: number; bookmakerOdds?: number; edge?: number }
   awayWin: { probability: number; odds: number; bookmakerOdds?: number; edge?: number }
+  xG: { home: number; away: number }
+  xG_recent?: { home: number; away: number }
   confidence: "high" | "medium" | "low"
   reasoning: string
+  analytics?: {
+    formIndex?: { home: number; away: number }
+    injuryFactor?: { home: number; away: number }
+    defenseFactor?: { home: number; away: number }
+    headToHead?: { bias: number; goalDelta: number }
+    ratings?: { home: number; away: number }
+    fatigue?: {
+      restHours: { home: number; away: number }
+      fatigueFactors: { home: number; away: number }
+      travelDistance?: number
+    }
+  }
 }
 
 export interface OverUnderPrediction {
@@ -310,12 +337,53 @@ export function transform1X2ToPrediction(
       bookmakerOdds: odds?.odds.away,
       edge: awayEdge
     },
+    xG: {
+      home: response.inputs.mu_home,
+      away: response.inputs.mu_away
+    },
+    xG_recent: response.inputs.mu_home_recent && response.inputs.mu_away_recent ? {
+      home: response.inputs.mu_home_recent,
+      away: response.inputs.mu_away_recent
+    } : undefined,
     confidence: calculateConfidence(maxProb),
     reasoning: `Basé sur le modèle ${response.model_version}. ${
       response.inputs.rating_home && response.inputs.rating_away
         ? `Ratings: ${Math.round(response.inputs.rating_home)} vs ${Math.round(response.inputs.rating_away)}.`
         : ""
-    }`
+    }`,
+    analytics: {
+      formIndex: response.inputs.form_index_home !== undefined && response.inputs.form_index_away !== undefined ? {
+        home: response.inputs.form_index_home,
+        away: response.inputs.form_index_away
+      } : undefined,
+      injuryFactor: response.inputs.injury_factor_home !== undefined && response.inputs.injury_factor_away !== undefined ? {
+        home: response.inputs.injury_factor_home,
+        away: response.inputs.injury_factor_away
+      } : undefined,
+      defenseFactor: response.inputs.defense_factor_home !== undefined && response.inputs.defense_factor_away !== undefined ? {
+        home: response.inputs.defense_factor_home,
+        away: response.inputs.defense_factor_away
+      } : undefined,
+      headToHead: response.inputs.head_to_head_bias !== undefined && response.inputs.head_to_head_goal_delta !== undefined ? {
+        bias: response.inputs.head_to_head_bias,
+        goalDelta: response.inputs.head_to_head_goal_delta
+      } : undefined,
+      ratings: response.inputs.rating_home && response.inputs.rating_away ? {
+        home: response.inputs.rating_home,
+        away: response.inputs.rating_away
+      } : undefined,
+      fatigue: response.inputs.rest_hours_home !== undefined && response.inputs.rest_hours_away !== undefined ? {
+        restHours: {
+          home: response.inputs.rest_hours_home,
+          away: response.inputs.rest_hours_away
+        },
+        fatigueFactors: {
+          home: response.inputs.fatigue_factor_home ?? 1,
+          away: response.inputs.fatigue_factor_away ?? 1
+        },
+        travelDistance: response.inputs.travel_distance_km
+      } : undefined
+    }
   }
 }
 

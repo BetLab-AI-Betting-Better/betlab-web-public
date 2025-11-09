@@ -7,15 +7,16 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getMatchDetail } from "@/modules/match-detail";
+import { getMatchDetail } from "@/modules/match-detail/server/queries";
 
-interface RouteContext {
+type RouteContext = {
   params: Promise<{ id: string }>;
-}
+};
 
 export async function GET(request: NextRequest, context: RouteContext) {
+  const { id } = await context.params;
+
   try {
-    const { id } = await context.params;
 
     // Validate ID
     if (!id || isNaN(parseInt(id, 10))) {
@@ -33,7 +34,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       },
     });
   } catch (error) {
-    console.error(`Error in GET /api/fixtures/${(await context.params).id}:`, error);
+    console.error(`Error in GET /api/fixtures/${id}:`, error);
     return NextResponse.json(
       {
         error: "Failed to fetch fixture detail",

@@ -1,8 +1,6 @@
 import "server-only";
 import { cache } from "react";
-import { cacheLife, cacheTag } from "next/cache";
 import { createServerSupabaseClient } from "@/infra/services/supabase/server-client";
-import { FAVORITES_CACHE } from "../cache/profile";
 
 /**
  * Get user favorites with caching
@@ -10,10 +8,6 @@ import { FAVORITES_CACHE } from "../cache/profile";
  * @returns Array of favorite fixture IDs
  */
 export const getUserFavorites = cache(async (userId: string): Promise<number[]> => {
-  'use cache';
-  cacheTag(FAVORITES_CACHE.tags.byUser(userId));
-  cacheLife(FAVORITES_CACHE.life.byUser);
-
   try {
     const supabase = await createServerSupabaseClient();
 
@@ -43,10 +37,6 @@ export const getUserFavorites = cache(async (userId: string): Promise<number[]> 
  */
 export const isFixtureFavorited = cache(
   async (userId: string, fixtureId: number): Promise<boolean> => {
-    'use cache';
-    cacheTag(FAVORITES_CACHE.tags.byUser(userId));
-    cacheLife(FAVORITES_CACHE.life.byUser);
-
     try {
       const supabase = await createServerSupabaseClient();
 

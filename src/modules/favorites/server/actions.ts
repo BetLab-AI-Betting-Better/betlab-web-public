@@ -4,7 +4,7 @@ import "server-only";
 import { updateTag } from "next/cache";
 import { createServerSupabaseClient } from "@/infra/services/supabase/server-client";
 import { FAVORITES_CACHE } from "../cache/profile";
-import type { FavoriteActionResult } from "../types";
+import type { FavoriteActionResult } from "../domain/types";
 
 /**
  * Add a fixture to user's favorites

@@ -1,8 +1,6 @@
 import "server-only";
 import { cache } from "react";
-import { cacheLife, cacheTag } from "next/cache";
 import { betlabFetch } from "@/infra/services/betlab-api/client";
-import { TEAMS_CACHE } from "../cache/profile";
 import type { TeamStats } from "../domain/types";
 
 interface ApiTeamStatsResponse {
@@ -40,10 +38,6 @@ function transformTeamStats(apiStats: ApiTeamStatsResponse["stats"]): TeamStats 
 }
 
 export const getTeamStats = cache(async (teamId: number): Promise<TeamStats> => {
-  'use cache';
-  cacheTag(TEAMS_CACHE.tags.stats(teamId));
-  cacheLife(TEAMS_CACHE.life.stats);
-
   const data = await betlabFetch<ApiTeamStatsResponse>(`/api/teams/${teamId}/stats`);
   return transformTeamStats(data.stats);
 });

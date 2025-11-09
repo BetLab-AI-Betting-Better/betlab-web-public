@@ -12,13 +12,15 @@
  * - Progressive enhancement
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, connection } from "next/server";
 import { getFixtures } from "@/modules/fixtures/server/queries";
 
 // ⚠️ runtime = "nodejs" removed - incompatible with cacheComponents in Next.js 16
 
 export async function GET(request: NextRequest) {
   try {
+    await connection(); // Ensure this route is treated as dynamic when search params are used
+
     // Extract date from query params
     const searchParams = request.nextUrl.searchParams;
     const date = searchParams.get("date") || new Date().toISOString().split("T")[0];

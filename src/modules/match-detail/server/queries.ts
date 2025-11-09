@@ -1,9 +1,9 @@
 import "server-only";
 import { cache } from "react";
-import { cacheLife, cacheTag } from "next/cache";
 import { betlabFetch } from "@/infra/services/betlab-api/client";
-import { MATCH_DETAIL_CACHE } from "../cache/profile";
 import type { MatchDetail } from "../domain/types";
+import { getPrediction, type PredictionType } from "@/modules/predictions/server/queries";
+import { getMatchProbabilities } from "./probabilities-queries";
 
 interface ApiFixtureResponse {
   id: number;
@@ -86,20 +86,38 @@ function transformMatchDetail(response: ApiFixtureResponse): MatchDetail {
 }
 
 export const getMatchDetail = cache(async (fixtureId: number | string): Promise<MatchDetail> => {
-  'use cache';
   const id = typeof fixtureId === "string" ? parseInt(fixtureId, 10) : fixtureId;
-  cacheTag(MATCH_DETAIL_CACHE.tags.byFixture(id));
-  cacheLife(MATCH_DETAIL_CACHE.life.detail);
 
   const data = await betlabFetch<ApiFixtureResponse>(`/api/fixtures/${id}`);
-  return transformMatchDetail(data);
+  const matchDetail = transformMatchDetail(data);
+
+  // Fetch predictions for the match (match_result by default)
+  try {
+    const prediction = await getPrediction(id, "match_result" as PredictionType);
+    if (prediction) {
+      matchDetail.predictions = [prediction];
+    }
+  } catch (error) {
+    console.warn(`Failed to fetch predictions for match ${id}:`, error);
+    // Continue without predictions
+  }
+
+  // Fetch probabilities from BetLab API
+  try {
+    const probabilities = await getMatchProbabilities(id);
+    if (probabilities) {
+      matchDetail.probabilities = probabilities;
+    }
+  } catch (error) {
+    console.warn(`Failed to fetch probabilities for match ${id}:`, error);
+    // Continue without probabilities
+  }
+
+  return matchDetail;
 });
 
 export const getLiveMatchDetail = cache(async (fixtureId: number | string): Promise<MatchDetail> => {
-  'use cache';
   const id = typeof fixtureId === "string" ? parseInt(fixtureId, 10) : fixtureId;
-  cacheTag(MATCH_DETAIL_CACHE.tags.byFixture(id));
-  cacheLife(MATCH_DETAIL_CACHE.life.detail);
 
   const data = await betlabFetch<ApiFixtureResponse>(`/api/fixtures/${id}`);
   return transformMatchDetail(data);
