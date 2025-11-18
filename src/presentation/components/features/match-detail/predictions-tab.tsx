@@ -4,7 +4,7 @@ import { useState } from "react"
 import { cn } from "@/shared/utils"
 import type { MatchDetail } from "@/core/entities/match-detail/match-detail.entity"
 import type { PredictionData } from "@/core/entities/predictions/prediction.entity"
-import { MatchResultCard, OverUnderCard, BTTSCard, CorrectScoreCard } from "./prediction-cards"
+import { MatchResultCard, OverUnderCard, BTTSCard, CorrectScoreCard, HtFtCard } from "./prediction-cards"
 
 interface PredictionsTabProps {
   match: MatchDetail
@@ -16,6 +16,7 @@ type PredictionType =
   | "both_teams_score"
   | "over_under"
   | "correct_score"
+  | "ht_ft"
 
 interface PredictionTypeInfo {
   id: PredictionType
@@ -28,6 +29,7 @@ const predictionTypes: PredictionTypeInfo[] = [
   { id: "both_teams_score", label: "Les 2 équipes marquent", shortLabel: "BTTS" },
   { id: "over_under", label: "Plus/Moins de buts", shortLabel: "O/U" },
   { id: "correct_score", label: "Score exact", shortLabel: "Score" },
+  { id: "ht_ft", label: "Mi-temps / Temps plein", shortLabel: "HT/FT" },
 ]
 
 /**
@@ -39,6 +41,15 @@ export function PredictionsTab({ match, predictions }: PredictionsTabProps) {
 
   const prediction = predictions?.find(p => p.type === selectedType)
   const hasProbabilities = !!match.probabilities
+
+  const renderNoData = (message: string) => (
+    <div className="bg-card border rounded-lg p-6">
+      <div className="text-center space-y-4 py-8">
+        <h3 className="text-lg font-semibold">Aucune prédiction disponible</h3>
+        <p className="text-sm text-muted-foreground">{message}</p>
+      </div>
+    </div>
+  )
 
   return (
     <div className="space-y-6 p-4">
@@ -75,42 +86,30 @@ export function PredictionsTab({ match, predictions }: PredictionsTabProps) {
 
       {/* Prediction Content */}
       <div>
-        {/* Prediction Cards - Use probabilities data from BetLab API */}
-        {hasProbabilities ? (
+        {/* HT-FT predictions are fetched via dedicated endpoint */}
+        {selectedType === "ht_ft" ? (
+          match.htFtProbabilities ? (
+            <HtFtCard match={match} data={match.htFtProbabilities} />
+          ) : (
+            renderNoData(
+              "Les probabilités Mi-temps / Temps plein ne sont pas encore disponibles pour ce match."
+            )
+          )
+        ) : hasProbabilities ? (
           <>
             {selectedType === "match_result" && (
               <MatchResultCard prediction={prediction as any} match={match} />
             )}
-            {selectedType === "over_under" && (
-              <OverUnderCard match={match} />
-            )}
-            {selectedType === "both_teams_score" && (
-              <BTTSCard match={match} />
-            )}
-            {selectedType === "correct_score" && (
-              <CorrectScoreCard match={match} />
-            )}
+            {selectedType === "over_under" && <OverUnderCard match={match} />}
+            {selectedType === "both_teams_score" && <BTTSCard match={match} />}
+            {selectedType === "correct_score" && <CorrectScoreCard match={match} />}
           </>
+        ) : prediction && selectedType === "match_result" ? (
+          <MatchResultCard prediction={prediction as any} match={match} />
         ) : (
-          /* Fallback to legacy predictions */
-          <>
-            {prediction && selectedType === "match_result" && (
-              <MatchResultCard prediction={prediction as any} match={match} />
-            )}
-            {!prediction && (
-              <div className="bg-card border rounded-lg p-6">
-                <div className="text-center space-y-4 py-8">
-                  <h3 className="text-lg font-semibold">
-                    Aucune prédiction disponible
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    Les probabilités pour ce match ne sont pas encore disponibles.
-                    Cela peut arriver pour les ligues non-européennes ou les matchs très anciens.
-                  </p>
-                </div>
-              </div>
-            )}
-          </>
+          renderNoData(
+            "Les probabilités pour ce match ne sont pas encore disponibles. Cela peut arriver pour certaines compétitions ou des rencontres très anciennes."
+          )
         )}
       </div>
     </div>

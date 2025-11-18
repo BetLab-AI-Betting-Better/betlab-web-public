@@ -7,6 +7,7 @@ import type { IMatchDetailRepository } from "@/core/repositories/match-detail.re
 import type { IPredictionRepository } from "@/core/repositories/prediction.repository";
 import { betlabFetch } from "@/infrastructure/services/betlab-api/client";
 import { getMatchProbabilities } from "./match-probabilities.datasource";
+import { getMatchHtFtProbabilities } from "./match-htft.datasource";
 
 interface ApiFixtureResponse {
   id: number;
@@ -93,6 +94,7 @@ export class BetlabMatchDetailRepository implements IMatchDetailRepository {
     await Promise.allSettled([
       this.attachPredictions(detail, id),
       this.attachProbabilities(detail, id),
+      this.attachHtFtProbabilities(detail, id),
     ]);
 
     return detail;
@@ -125,6 +127,17 @@ export class BetlabMatchDetailRepository implements IMatchDetailRepository {
       }
     } catch (error) {
       console.warn(`Failed to fetch probabilities for match ${fixtureId}:`, error);
+    }
+  }
+
+  private async attachHtFtProbabilities(detail: MatchDetail, fixtureId: number) {
+    try {
+      const htft = await getMatchHtFtProbabilities(fixtureId);
+      if (htft) {
+        detail.htFtProbabilities = htft;
+      }
+    } catch (error) {
+      console.warn(`Failed to fetch HT-FT probabilities for match ${fixtureId}:`, error);
     }
   }
 }
