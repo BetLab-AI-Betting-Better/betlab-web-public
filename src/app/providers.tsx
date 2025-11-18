@@ -6,7 +6,7 @@
  */
 
 import type { ReactNode } from 'react';
-import { ThemeProvider } from '@/core/providers/theme-provider';
+import { ThemeProvider } from '@/presentation/components/providers/theme-provider';
 
 export function AppProviders({ children }: { children: ReactNode }) {
   return (

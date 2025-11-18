@@ -3,7 +3,7 @@
  * Reproduit le comportement de l'app Flutter
  */
 
-import type { Match } from "../components/match-card-compact";
+import type { Match } from "../match-card-compact";
 
 export type TimeSlot = "Matin (06h-12h)" | "Après-midi (12h-18h)" | "Soirée (18h-00h)" | "Nuit (00h-06h)";
 

@@ -66,7 +66,7 @@ export interface OverUnderPrediction {
 export interface BTTSPrediction {
   fixtureId: number;
   type: "both_teams_score";
-  yes: ProbabilityNode;
+  yes: ProbabilityNodeWithThreshold;
   no: ProbabilityNode;
   cleanSheets?: {
     home: ProbabilityNode;

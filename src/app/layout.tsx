@@ -1,38 +1,39 @@
 import type { Metadata, Viewport } from "next";
 import dynamic from "next/dynamic";
-import { Geist, Geist_Mono } from "next/font/google";
+// import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AppProviders } from "@/app/providers";
 
 // ⚠️ runtime = "nodejs" removed - incompatible with cacheComponents in Next.js 16
 
 const WebVitalsReporter = dynamic(
-  () => import("@/core/observability/web-vitals-reporter").then((m) => m.WebVitalsReporter)
+  () => import("@/infrastructure/observability/web-vitals-reporter").then((m) => m.WebVitalsReporter)
 );
 
 const InstallPrompt = dynamic(
-  () => import("@/shared/pwa/install-prompt").then((m) => m.InstallPrompt)
+  () => import("@/presentation/components/pwa/install-prompt").then((m) => m.InstallPrompt)
 );
 
 const ServiceWorkerRegister = dynamic(
-  () => import("@/shared/pwa/service-worker-register").then((m) => m.ServiceWorkerRegister)
+  () => import("@/presentation/components/pwa/service-worker-register").then((m) => m.ServiceWorkerRegister)
 );
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-  display: "swap", // Évite Flash of Unstyled Text
-  preload: true,
-  fallback: ["system-ui", "arial"],
-});
+// Google Fonts temporarily disabled due to build environment restrictions
+// const geistSans = Geist({
+//   variable: "--font-geist-sans",
+//   subsets: ["latin"],
+//   display: "swap",
+//   preload: true,
+//   fallback: ["system-ui", "arial"],
+// });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-  display: "swap",
-  preload: true,
-  fallback: ["Courier New", "monospace"],
-});
+// const geistMono = Geist_Mono({
+//   variable: "--font-geist-mono",
+//   subsets: ["latin"],
+//   display: "swap",
+//   preload: true,
+//   fallback: ["Courier New", "monospace"],
+// });
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -123,7 +124,7 @@ export default function RootLayout({
   return (
     <html lang="fr" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className="antialiased"
       >
         <AppProviders>{children}</AppProviders>
         <WebVitalsReporter />

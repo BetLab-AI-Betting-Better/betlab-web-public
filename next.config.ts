@@ -1,13 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Cache Components align with Next.js 16 recommendations
-  cacheComponents: true,
-  cacheLife: {
-    default: { stale: 60, revalidate: 300, expire: 3600 },
-    short: { stale: 10, revalidate: 60, expire: 300 },
-    long: { stale: 300, revalidate: 3600, expire: 86400 },
-  },
+  // Cache Components temporarily disabled for build compatibility
+  // TODO: Re-enable once all runtime issues are resolved
+  // cacheComponents: true,
+  // cacheLife: {
+  //   default: { stale: 60, revalidate: 300, expire: 3600 },
+  //   short: { stale: 10, revalidate: 60, expire: 300 },
+  //   long: { stale: 300, revalidate: 3600, expire: 86400 },
+  // },
   reactCompiler: true,
 
   images: {
@@ -42,10 +43,7 @@ const nextConfig: NextConfig = {
   },
 
   experimental: {
-    turbopackFileSystemCache: {
-      dev: true,
-      build: true,
-    },
+    turbopackUseSystemTlsCerts: true,
     optimizePackageImports: [
       'lucide-react',
       '@radix-ui/react-icons',

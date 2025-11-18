@@ -21,25 +21,13 @@ interface MatchDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
-const PREFETCH_LIMIT = 8;
 const FALLBACK_PREFETCH_IDS = ["1390931"];
 
+// Simplified generateStaticParams - returns fallback ID only to satisfy cacheComponents requirement
+// Full static generation disabled to avoid build-time API dependency
 export async function generateStaticParams() {
-  try {
-    const today = new Date().toISOString().split("T")[0];
-    const fixturesService = container.createFixturesService();
-    const matches = await fixturesService.getFixturesByDate(today);
-    const params = matches
-      .slice(0, PREFETCH_LIMIT)
-      .map((match) => ({ id: match.fixtureId.toString() }));
-
-    if (params.length > 0) {
-      return params;
-    }
-  } catch (error) {
-    console.warn("generateStaticParams(match/[id]) failed, using fallback IDs:", error);
-  }
-
+  // Return minimal fallback to satisfy Next.js 16 cacheComponents requirement
+  // Actual pages will be generated on-demand at runtime
   return FALLBACK_PREFETCH_IDS.map((id) => ({ id }));
 }
 

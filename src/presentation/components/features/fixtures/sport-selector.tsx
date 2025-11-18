@@ -5,7 +5,7 @@
  * This component is kept for future multi-sport support
  */
 
-import { SportType } from "@/core/config/enums/sport-type"
+import { SportType } from "@/shared/constants/enums/sport-type"
 import { cn } from "@/shared/utils"
 
 export function SportSelector({ className }: { className?: string }) {

@@ -30,7 +30,7 @@ import { type Match } from "./match-card-compact"
 import { MatchCardSkeleton } from "./match-card-skeleton"
 import { SubTimeSlotHeader } from "./sub-time-slot-header"
 import { HorizontalMatchList } from "./horizontal-match-list"
-import { groupMatchesByTimeSlots } from "../utils/match-grouping"
+import { groupMatchesByTimeSlots } from "./utils/match-grouping"
 import { cn } from "@/shared/utils"
 
 export interface MatchListProps extends React.HTMLAttributes<HTMLDivElement> {
