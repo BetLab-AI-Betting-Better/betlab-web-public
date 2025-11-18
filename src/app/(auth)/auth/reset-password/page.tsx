@@ -6,11 +6,11 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { useRouter } from "next/navigation"
 import { CheckCircle, Loader2 } from "lucide-react"
-import { updatePasswordAction } from "@/modules/auth"
-import { Button } from "@/shared/ui/button"
-import { PasswordInput } from "@/shared/ui/password-input"
-import { PasswordStrength } from "@/shared/ui/password-strength"
-import { useToast } from "@/shared/hooks/use-toast"
+import { updatePasswordAction } from "@/presentation/actions/auth/auth.actions"
+import { Button } from "@/presentation/components/ui/button"
+import { PasswordInput } from "@/presentation/components/ui/password-input"
+import { PasswordStrength } from "@/presentation/components/ui/password-strength"
+import { useToast } from "@/presentation/hooks/use-toast"
 
 const resetPasswordSchema = z
   .object({

@@ -1,11 +1,15 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-
-import { isPublicRoute, shouldSkipProxy } from "@/core/auth/guards";
+import { isPublicRoute, shouldSkipProxy } from "@/presentation/actions/auth/proxy-guards";
 
 const ACCESS_TOKEN_COOKIE = "sb-access-token";
 const REFRESH_TOKEN_COOKIE = "sb-refresh-token";
 
+/**
+ * proxy.ts
+ * Acts as the network boundary for Next.js 16.
+ * Keep logic minimal (optimistic redirects, lightweight rewrites).
+ */
 export function proxy(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
 

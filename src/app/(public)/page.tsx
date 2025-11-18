@@ -12,8 +12,8 @@
  */
 
 import { Suspense } from "react";
-import { LoadingState } from "@/shared/ui";
-import { HomeFixturesSection } from "@/modules/fixtures/ui/components/home-fixtures-section";
+import { LoadingState } from "@/presentation/components/ui/loading-state";
+import { HomeFixturesSection } from "@/presentation/components/features/fixtures/home-fixtures-section";
 
 // ✅ PPR is enabled globally via cacheComponents: true in next.config.ts
 // No need for page-level experimental_ppr

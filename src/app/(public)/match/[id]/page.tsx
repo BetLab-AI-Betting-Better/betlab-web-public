@@ -12,8 +12,8 @@
  */
 
 import { Suspense } from "react";
-import { getMatchDetail } from "@/modules/match-detail/server/queries";
-import { getFixtures } from "@/modules/fixtures/server/queries";
+import type { MatchDetail } from "@/core/entities/match-detail/match-detail.entity";
+import { container } from "@/presentation/di/container";
 import { MatchDetailClient } from "./page.client";
 import { LoadingSkeleton, ErrorState } from "./page.components";
 
@@ -27,7 +27,8 @@ const FALLBACK_PREFETCH_IDS = ["1390931"];
 export async function generateStaticParams() {
   try {
     const today = new Date().toISOString().split("T")[0];
-    const matches = await getFixtures(today);
+    const fixturesService = container.createFixturesService();
+    const matches = await fixturesService.getFixturesByDate(today);
     const params = matches
       .slice(0, PREFETCH_LIMIT)
       .map((match) => ({ id: match.fixtureId.toString() }));
@@ -43,10 +44,11 @@ export async function generateStaticParams() {
 }
 
 async function MatchDetailContent({ id }: { id: string }) {
-  let match: Awaited<ReturnType<typeof getMatchDetail>>;
+  let match: MatchDetail;
+  const matchDetailRepository = container.createMatchDetailRepository();
 
   try {
-    match = await getMatchDetail(id);
+    match = await matchDetailRepository.getMatchDetail(id);
   } catch (error) {
     return (
       <ErrorState

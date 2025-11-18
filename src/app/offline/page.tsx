@@ -1,7 +1,7 @@
 'use client'
 
 import { WifiOff, RefreshCw } from 'lucide-react'
-import { Button } from '@/shared/ui/button'
+import { Button } from '@/presentation/components/ui/button'
 
 export default function OfflinePage() {
   return (

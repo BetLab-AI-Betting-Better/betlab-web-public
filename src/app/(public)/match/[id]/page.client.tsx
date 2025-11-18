@@ -14,8 +14,8 @@ import {
   AnalysisTab,
   ValueBetsTab,
   type TabId,
-  type MatchDetail
-} from "@/modules/match-detail";
+} from "@/presentation/components/features/match-detail";
+import type { MatchDetail } from "@/core/entities/match-detail/match-detail.entity";
 
 interface MatchDetailClientProps {
   match: MatchDetail;

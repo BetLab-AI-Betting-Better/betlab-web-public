@@ -1,11 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Component caching conflicts with our dynamic match data (search params, auth)
-  cacheComponents: false,
+  // Cache Components align with Next.js 16 recommendations
+  cacheComponents: true,
+  cacheLife: {
+    default: { stale: 60, revalidate: 300, expire: 3600 },
+    short: { stale: 10, revalidate: 60, expire: 300 },
+    long: { stale: 300, revalidate: 3600, expire: 86400 },
+  },
   reactCompiler: true,
 
-  // Configuration des images pour optimisation
   images: {
     remotePatterns: [
       {
@@ -37,8 +41,11 @@ const nextConfig: NextConfig = {
     unoptimized: process.env.NODE_ENV === 'development',
   },
 
-  // Optimisations expérimentales
   experimental: {
+    turbopackFileSystemCache: {
+      dev: true,
+      build: true,
+    },
     optimizePackageImports: [
       'lucide-react',
       '@radix-ui/react-icons',
@@ -51,9 +58,6 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: '2mb',
     },
-
-    turbopackFileSystemCacheForDev: true,
-    // turbopackFileSystemCacheForBuild: true, // ⚠️ Requires Next.js canary
   },
 
   // Compiler optimizations
@@ -63,8 +67,17 @@ const nextConfig: NextConfig = {
     } : false,
   },
 
-  // ✅ REMOVED: typescript.ignoreBuildErrors
-  // Build will now fail on TypeScript errors - good for code quality!
+  turbopack: {
+    resolveAlias: {
+      '@': './src',
+      '@components': './src/presentation/components',
+      '@core': './src/core',
+      '@domain': './src/core',
+      '@infrastructure': './src/infrastructure',
+      '@application': './src/application',
+      '@presentation': './src/presentation',
+    },
+  },
 };
 
 export default nextConfig;

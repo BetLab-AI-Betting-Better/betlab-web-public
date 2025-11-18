@@ -7,17 +7,17 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import Link from "next/link"
 import { Loader2 } from "lucide-react"
 
-import { signUpAction } from "@/modules/auth"
+import { signUpAction } from "@/presentation/actions/auth/auth.actions"
 import {
   RegisterSchema,
   type RegisterFormData,
-} from "@/core/validation/auth-schema"
-import { Button } from "@/shared/ui/button"
-import { Input } from "@/shared/ui/input"
-import { PasswordInput } from "@/shared/ui/password-input"
-import { Checkbox } from "@/shared/ui/checkbox"
-import { Label } from "@/shared/ui/label"
-import { useToast } from "@/shared/hooks/use-toast"
+} from "@/application/validators/auth-schema"
+import { Button } from "@/presentation/components/ui/button"
+import { Input } from "@/presentation/components/ui/input"
+import { PasswordInput } from "@/presentation/components/ui/password-input"
+import { Checkbox } from "@/presentation/components/ui/checkbox"
+import { Label } from "@/presentation/components/ui/label"
+import { useToast } from "@/presentation/hooks/use-toast"
 
 export default function RegisterPage() {
   const router = useRouter()

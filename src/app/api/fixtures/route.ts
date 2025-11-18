@@ -13,7 +13,7 @@
  */
 
 import { NextRequest, NextResponse, connection } from "next/server";
-import { getFixtures } from "@/modules/fixtures/server/queries";
+import { container } from "@/presentation/di/container";
 
 // ⚠️ runtime = "nodejs" removed - incompatible with cacheComponents in Next.js 16
 
@@ -30,8 +30,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Invalid date format. Use YYYY-MM-DD" }, { status: 400 });
     }
 
-    // Call server service
-    const fixtures = await getFixtures(date);
+    const fixturesService = container.createFixturesService();
+    const fixtures = await fixturesService.getFixturesByDate(date);
 
     // Return fixtures with appropriate caching headers
     return NextResponse.json(fixtures, {

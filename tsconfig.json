@@ -25,8 +25,9 @@
       "@/*": ["./*"],
       "@/app/*": ["./app/*"],
       "@/core/*": ["./core/*"],
-      "@/infra/*": ["./infra/*"],
-      "@/modules/*": ["./modules/*"],
+      "@/application/*": ["./application/*"],
+      "@/infrastructure/*": ["./infrastructure/*"],
+      "@/presentation/*": ["./presentation/*"],
       "@/shared/*": ["./shared/*"],
       "@/tests/*": ["./tests/*"]
     }
@@ -38,7 +39,7 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts",
-    "src/types/**/*.d.ts"
+    "src/shared/types/**/*.d.ts"
   ],
   "exclude": ["node_modules"]
 }

@@ -8,10 +8,8 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import {
-  getPredictions,
-  type PredictionType,
-} from "@/modules/predictions/server/queries";
+import type { PredictionType } from "@/core/entities/predictions/prediction.entity";
+import { container } from "@/presentation/di/container";
 
 // ⚠️ runtime = "nodejs" removed - incompatible with cacheComponents in Next.js 16
 
@@ -42,7 +40,9 @@ export async function POST(request: NextRequest) {
     const type = body.type || "match_result";
 
     // Call server service
-    const predictions = await getPredictions(body.fixtureIds, type);
+    const predictions = await container
+      .predictionRepository
+      .getPredictions(body.fixtureIds, type);
 
     // Return predictions with appropriate caching headers
     return NextResponse.json(predictions, {

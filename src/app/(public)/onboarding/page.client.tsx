@@ -1,18 +1,18 @@
 "use client";
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useSwipeable } from 'react-swipeable';
-import { ArrowLeft } from 'lucide-react';
-import { Button } from '@/shared/ui/button';
-import { ProgressBar } from '@/modules/onboarding/ui/components/progress-bar';
-import { ProfileStep } from '@/modules/onboarding/ui/components/profile-step';
-import { LeaguesStep } from '@/modules/onboarding/ui/components/leagues-step';
-import { PreferencesStep } from '@/modules/onboarding/ui/components/preferences-step';
-import { SuccessStep } from '@/modules/onboarding/ui/components/success-step';
-import { toast } from 'sonner';
-import type { CurrentUser } from '@/core/auth/types';
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { useSwipeable } from "react-swipeable";
+import { ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
+import { Button } from "@/presentation/components/ui/button";
+import { ProgressBar } from "@/presentation/components/features/onboarding/progress-bar";
+import { ProfileStep } from "@/presentation/components/features/onboarding/profile-step";
+import { LeaguesStep } from "@/presentation/components/features/onboarding/leagues-step";
+import { PreferencesStep } from "@/presentation/components/features/onboarding/preferences-step";
+import { SuccessStep } from "@/presentation/components/features/onboarding/success-step";
+import type { CurrentUser } from "@/core/entities/user.entity";
 
 interface OnboardingClientProps {
   user: CurrentUser;

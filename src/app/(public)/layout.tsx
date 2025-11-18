@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import { PublicShell } from "@/modules/layouts/ui/public-shell.client";
-import { getCurrentUser } from "@/modules/auth/server/session";
+import { PublicShell } from "@/presentation/components/layouts/public-shell.client";
+import { getCurrentUser } from "@/application/services/auth/session.service";
 
 // ⚠️ runtime = "nodejs" removed - incompatible with cacheComponents in Next.js 16
 

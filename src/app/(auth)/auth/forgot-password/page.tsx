@@ -6,10 +6,10 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import Link from "next/link"
 import { CheckCircle, ArrowLeft, Mail, Loader2 } from "lucide-react"
-import { resetPasswordAction } from "@/modules/auth"
-import { Button } from "@/shared/ui/button"
-import { Input } from "@/shared/ui/input"
-import { useToast } from "@/shared/hooks/use-toast"
+import { resetPasswordAction } from "@/presentation/actions/auth/auth.actions"
+import { Button } from "@/presentation/components/ui/button"
+import { Input } from "@/presentation/components/ui/input"
+import { useToast } from "@/presentation/hooks/use-toast"
 
 const forgotPasswordSchema = z.object({
   email: z.string().email("Email invalide"),

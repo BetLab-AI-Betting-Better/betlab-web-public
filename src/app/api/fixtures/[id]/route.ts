@@ -7,7 +7,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getMatchDetail } from "@/modules/match-detail/server/queries";
+import { container } from "@/presentation/di/container";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -23,8 +23,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: "Invalid fixture ID" }, { status: 400 });
     }
 
-    // Call server service
-    const match = await getMatchDetail(id);
+    const matchDetailRepository = container.createMatchDetailRepository();
+    const match = await matchDetailRepository.getMatchDetail(id);
 
     // Return match detail with appropriate caching headers
     return NextResponse.json(match, {
