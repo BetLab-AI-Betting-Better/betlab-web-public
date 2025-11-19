@@ -42,10 +42,8 @@ const nextConfig: NextConfig = {
   },
 
   experimental: {
-    turbopackFileSystemCache: {
-      dev: true,
-      build: true,
-    },
+    // Note: turbopackFileSystemCache is not supported in Next.js 16.0.1 stable
+    // It requires canary version - removed to avoid build errors
     optimizePackageImports: [
       'lucide-react',
       '@radix-ui/react-icons',

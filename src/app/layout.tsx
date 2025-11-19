@@ -7,7 +7,7 @@ import { AppProviders } from "@/app/providers";
 // ⚠️ runtime = "nodejs" removed - incompatible with cacheComponents in Next.js 16
 
 const WebVitalsReporter = dynamic(
-  () => import("@/core/observability/web-vitals-reporter").then((m) => m.WebVitalsReporter)
+  () => import("@/infrastructure/observability/web-vitals-reporter").then((m) => m.WebVitalsReporter)
 );
 
 const InstallPrompt = dynamic(

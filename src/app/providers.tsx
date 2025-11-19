@@ -6,12 +6,15 @@
  */
 
 import type { ReactNode } from 'react';
-import { ThemeProvider } from '@/core/providers/theme-provider';
+import { Suspense } from 'react';
+import { ThemeProvider } from '@/presentation/components/providers/theme-provider';
 
 export function AppProviders({ children }: { children: ReactNode }) {
   return (
-    <ThemeProvider>
-      {children}
-    </ThemeProvider>
+    <Suspense fallback={null}>
+      <ThemeProvider>
+        {children}
+      </ThemeProvider>
+    </Suspense>
   );
 }

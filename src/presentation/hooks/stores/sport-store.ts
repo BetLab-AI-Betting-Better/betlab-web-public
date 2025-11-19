@@ -5,7 +5,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { SportType } from '@/core/config/enums/sport-type';
+import { SportType } from '@/shared/constants/enums/sport-type';
 
 interface SportState {
   activeSport: SportType;
