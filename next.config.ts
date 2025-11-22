@@ -38,8 +38,9 @@ const nextConfig: NextConfig = {
     deviceSizes: [375, 414, 768, 1024, 1440],
     imageSizes: [16, 32, 48, 64, 96],
     minimumCacheTTL: 60,
-    // Disable image optimization in development to avoid timeouts with slow external APIs
-    unoptimized: process.env.NODE_ENV === 'development',
+    // Disable image optimization to avoid 402 errors from API-Sports
+    // Images will be loaded directly from the CDN without Next.js optimization
+    unoptimized: true,
   },
 
   experimental: {
