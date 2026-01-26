@@ -18,11 +18,23 @@ import { HomeFixturesSection } from "@/presentation/components/features/fixtures
 // ✅ PPR is enabled globally via cacheComponents: true in next.config.ts
 // No need for page-level experimental_ppr
 
-export default function HomePage() {
+interface PageProps {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export default async function HomePage(props: PageProps) {
+  const searchParams = await props.searchParams;
+  const dateParam = searchParams.date;
+  const asOf = typeof dateParam === "string" ? new Date(dateParam) : new Date();
+
   return (
     <div className="container mx-auto space-y-6 p-4">
       <Suspense fallback={<LoadingState />}>
-        <HomeFixturesSection />
+        {/* Force re-render key when date changes to ensure Suspense triggers */}
+        <HomeFixturesSection
+          key={asOf.toISOString()}
+          asOf={asOf}
+        />
       </Suspense>
     </div>
   );

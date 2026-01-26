@@ -13,10 +13,11 @@
 import { useState, useMemo } from "react";
 import { useSportStore } from "@/presentation/hooks/stores/sport-store";
 import type {
-  Match,
+  MatchWithPrediction,
   LeagueInfo,
   MatchCountByDate,
 } from "@/core/entities/fixtures/fixture.entity";
+import type { MatchResultPrediction, PredictionData } from "@/core/entities/predictions/prediction.entity";
 
 // Type definitions for filters
 export type PredictionType =
@@ -73,6 +74,39 @@ export function isPopularLeague(leagueId: number): boolean {
 }
 
 /**
+ * Extract the maximum probability from a prediction
+ * Used for filtering by minimum probability
+ */
+function getMaxProbability(prediction: PredictionData): number {
+  switch (prediction.type) {
+    case "match_result":
+      return Math.max(
+        prediction.homeWin.probability,
+        prediction.draw.probability,
+        prediction.awayWin.probability
+      );
+    case "over_under":
+      return Math.max(prediction.over25.probability, prediction.under25.probability);
+    case "both_teams_score":
+      return Math.max(prediction.yes.probability, prediction.no.probability);
+    case "correct_score":
+      return prediction.topScores[0]?.probability ?? 0;
+    case "draw_no_bet":
+      return Math.max(prediction.home.probability, prediction.away?.probability ?? 0);
+    case "asian_handicap":
+      return prediction.homeMinusQuarter.winFull;
+    case "double_chance":
+      return Math.max(
+        prediction.homeOrDraw.probability,
+        prediction.homeOrAway.probability,
+        prediction.drawOrAway.probability
+      );
+    default:
+      return 0;
+  }
+}
+
+/**
  * Clean league name by removing group/girone suffixes
  * This helps group multiple instances of the same league (e.g., Champions League groups)
  */
@@ -87,14 +121,14 @@ function cleanLeagueName(name: string): string {
 /**
  * Hook for managing fixture filters and display state
  *
- * @param matches - Array of matches (typically from server-side fetch)
+ * @param matches - Array of matches with predictions (typically from server-side fetch)
  * @returns Filter state, setters, and computed values (filtered matches, leagues, etc.)
  */
-export function useFixtureFilters(matches: Match[]) {
+export function useFixtureFilters(matches: MatchWithPrediction[], initialDate?: Date) {
   const { activeSport, setActiveSport } = useSportStore();
 
   // Filter state
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(initialDate || new Date());
   const [selectedLeagueId, setSelectedLeagueId] = useState<number | string | "all" | "favorites">(
     "all"
   );
@@ -145,8 +179,8 @@ export function useFixtureFilters(matches: Match[]) {
 
   // Séparer les matchs populaires des non-populaires
   const { popularMatches, otherMatches } = useMemo(() => {
-    const popular: Match[] = [];
-    const other: Match[] = [];
+    const popular: MatchWithPrediction[] = [];
+    const other: MatchWithPrediction[] = [];
 
     matches.forEach((match) => {
       if (POPULAR_LEAGUE_IDS.has(match.league.id)) {
@@ -193,10 +227,37 @@ export function useFixtureFilters(matches: Match[]) {
       }
     }
 
-    // TODO: Add more filters (confidence, xG, probability) when predictions are integrated
+    // Filter by confidence level
+    if (selectedConfidences.length > 0) {
+      filtered = filtered.filter((m) => {
+        if (!m.prediction) return false;
+        return selectedConfidences.includes(m.prediction.confidence);
+      });
+    }
+
+    // Filter by xG range (only applies to match_result predictions)
+    if (xGRange[0] > 0 || xGRange[1] < 5) {
+      filtered = filtered.filter((m) => {
+        if (!m.prediction || m.prediction.type !== "match_result") return true;
+        const pred = m.prediction as MatchResultPrediction;
+        if (!pred.xG) return true;
+        const totalXG = pred.xG.home + pred.xG.away;
+        return totalXG >= xGRange[0] && totalXG <= xGRange[1];
+      });
+    }
+
+    // Filter by minimum probability
+    if (minProbability > 0) {
+      filtered = filtered.filter((m) => {
+        if (!m.prediction) return false;
+        // Get the maximum probability from the prediction
+        const maxProb = getMaxProbability(m.prediction);
+        return maxProb >= minProbability / 100;
+      });
+    }
 
     return filtered;
-  }, [matches, popularMatches, selectedLeagueId, leagues, searchQuery, showAllMatches]);
+  }, [matches, popularMatches, selectedLeagueId, leagues, searchQuery, showAllMatches, selectedConfidences, xGRange, minProbability]);
 
   // Count matches by date (for CalendarWidget)
   // Note: Currently only has data for the fetched date

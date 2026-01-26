@@ -12,7 +12,8 @@
 "use client";
 
 import { useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
+import { format } from "date-fns";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import {
   CalendarWidget,
@@ -33,6 +34,14 @@ interface HomeFixturesClientProps {
 
 export function HomeFixturesClient({ initialMatches }: HomeFixturesClientProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Initialize date from URL or default to today
+  const dateParam = searchParams.get("date");
+  const initialDate = useMemo(() => {
+    return dateParam ? new Date(dateParam) : new Date();
+  }, [dateParam]);
+
   const normalizedMatches = useMemo<MatchWithPrediction[]>(() => {
     return initialMatches.map((match) => {
       const kickoffSource = match.kickoffTime;
@@ -69,7 +78,7 @@ export function HomeFixturesClient({ initialMatches }: HomeFixturesClientProps) 
     filteredMatches,
     matchCountsByDate,
     otherMatchesCount,
-  } = useFixtureFilters(normalizedMatches);
+  } = useFixtureFilters(normalizedMatches, initialDate);
 
   // TODO: Fetch favorites server-side and pass as props
   const matchesWithState = filteredMatches;
@@ -79,13 +88,22 @@ export function HomeFixturesClient({ initialMatches }: HomeFixturesClientProps) 
     router.push(`/match/${matchId}`);
   };
 
+  const handleDateChange = (date: Date) => {
+    setSelectedDate(date);
+    // Update URL to trigger server-side fetch
+    const dateStr = format(date, "yyyy-MM-dd");
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("date", dateStr);
+    router.push(`/?${params.toString()}`);
+  };
+
   return (
     <>
       {/* Filters & Search */}
       <div className="space-y-4">
         <CalendarWidget
           selectedDate={selectedDate}
-          onDateChange={setSelectedDate}
+          onDateChange={handleDateChange}
           matchCountsByDate={matchCountsByDate}
         />
 
