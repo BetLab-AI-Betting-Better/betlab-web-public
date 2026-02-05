@@ -103,7 +103,7 @@ interface WebDailyMatchesResponse {
   matches: MatchWithPrediction[];
 }
 
-const fetchFixturesWithPredictions = cache(async (date: string): Promise<MatchWithPrediction[]> => {
+async function fetchFixturesWithPredictions(date: string): Promise<MatchWithPrediction[]> {
   const data = await betlabFetch<WebDailyMatchesResponse>("/v1/web/matches/daily", {
     searchParams: { date },
     cache: "no-store",
@@ -114,7 +114,7 @@ const fetchFixturesWithPredictions = cache(async (date: string): Promise<MatchWi
     ...match,
     kickoffTime: new Date(match.kickoffTime),
   }));
-});
+}
 
 export class BetlabFixtureRepository implements IFixtureRepository {
   async findByDate(date: string): Promise<Match[]> {

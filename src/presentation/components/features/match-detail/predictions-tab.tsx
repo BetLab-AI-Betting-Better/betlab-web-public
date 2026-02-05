@@ -5,6 +5,7 @@ import { cn } from "@/shared/utils"
 import type { MatchDetail } from "@/core/entities/match-detail/match-detail.entity"
 import type { PredictionData, MatchResultPrediction } from "@/core/entities/predictions/prediction.entity"
 import { MatchResultCard, OverUnderCard, BTTSCard, CorrectScoreCard, HtFtCard } from "./prediction-cards"
+import { ModelNarration } from "./model-narration"
 
 interface PredictionsTabProps {
   match: MatchDetail
@@ -112,6 +113,8 @@ export function PredictionsTab({ match, predictions }: PredictionsTabProps) {
           )
         )}
       </div>
+
+      <ModelNarration match={match} prediction={prediction} predictions={predictions} />
     </div>
   )
 }

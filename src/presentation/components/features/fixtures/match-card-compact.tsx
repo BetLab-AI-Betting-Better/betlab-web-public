@@ -62,11 +62,147 @@ export interface MatchCardCompactProps
   onFavoriteToggle?: () => void
 }
 
+function formatPercent(value?: number) {
+  if (value === undefined || value === null || Number.isNaN(value)) return "--"
+  return `${(value * 100).toFixed(1)}%`
+}
+
+type BestMarket = { label: string; prob: number }
+
+function formatLine(raw: string) {
+  const normalized = raw.replace(/_/g, ".")
+  return normalized.includes(".") ? normalized.replace(".", ",") : normalized
+}
+
+function formatMarketLabel(raw?: string, match?: Match) {
+  if (!raw) return ""
+  const key = raw.trim().toLowerCase()
+  const normalized = key.replace(/\./g, "_")
+  const homeName = match?.homeTeam?.name || "Domicile"
+  const awayName = match?.awayTeam?.name || "Exterieur"
+
+  if (normalized.startsWith("over_")) {
+    const line = formatLine(normalized.replace("over_", ""))
+    return `Plus de ${line} buts`
+  }
+  if (normalized.startsWith("under_")) {
+    const line = formatLine(normalized.replace("under_", ""))
+    return `Moins de ${line} buts`
+  }
+  if (normalized.startsWith("home_over_")) {
+    const line = formatLine(normalized.replace("home_over_", ""))
+    return `${homeName} plus de ${line} buts`
+  }
+  if (normalized.startsWith("home_under_")) {
+    const line = formatLine(normalized.replace("home_under_", ""))
+    return `${homeName} moins de ${line} buts`
+  }
+  if (normalized.startsWith("away_over_")) {
+    const line = formatLine(normalized.replace("away_over_", ""))
+    return `${awayName} plus de ${line} buts`
+  }
+  if (normalized.startsWith("away_under_")) {
+    const line = formatLine(normalized.replace("away_under_", ""))
+    return `${awayName} moins de ${line} buts`
+  }
+  if (normalized.startsWith("team_over_")) {
+    const line = formatLine(normalized.replace("team_over_", ""))
+    return `Equipe plus de ${line} buts`
+  }
+  if (normalized.startsWith("team_under_")) {
+    const line = formatLine(normalized.replace("team_under_", ""))
+    return `Equipe moins de ${line} buts`
+  }
+  if (normalized.startsWith("double_chance_")) {
+    const dc = normalized.replace("double_chance_", "").replace(/_/g, "").toUpperCase()
+    return `Double chance ${dc}`
+  }
+  if (normalized.startsWith("dc_")) {
+    const dc = normalized.replace("dc_", "").replace(/_/g, "").toUpperCase()
+    return `Double chance ${dc}`
+  }
+  if (normalized === "dnb_home") return `DNB ${homeName}`
+  if (normalized === "dnb_away") return `DNB ${awayName}`
+  if (normalized === "btts_yes") return "Les deux equipes marquent - Oui"
+  if (normalized === "btts_no") return "Les deux equipes marquent - Non"
+  if (normalized === "btts") return "Les deux equipes marquent"
+  if (normalized === "1x2_home") return `Victoire ${homeName}`
+  if (normalized === "1x2_draw") return "Match nul"
+  if (normalized === "1x2_away") return `Victoire ${awayName}`
+
+  if (normalized.startsWith("team_totals_")) {
+    const rest = normalized.replace("team_totals_", "")
+    const parts = rest.split("_")
+    if (parts.length >= 3) {
+      const side = parts[0] === "home" ? homeName : parts[0] === "away" ? awayName : "Equipe"
+      const direction = parts[1] === "over" ? "plus de" : parts[1] === "under" ? "moins de" : parts[1]
+      const line = formatLine(parts.slice(2).join("_"))
+      return `${side} ${direction} ${line} buts`
+    }
+  }
+
+  const labelMap: Record<string, string> = {
+    "total over (2-way)": "Plus de buts",
+    "total under (2-way)": "Moins de buts",
+  }
+  return labelMap[key] ?? raw
+}
+
+function getBestMarket(prediction?: PredictionData, match?: Match): BestMarket | null {
+  if (!prediction) return null
+  const anyPred = prediction as unknown as {
+    best_market?: {
+      label?: string
+      market?: string
+      prob?: number
+      probability?: number
+      rule?: { label?: string }
+    }
+    bestMarket?: {
+      label?: string
+      market?: string
+      prob?: number
+      probability?: number
+      rule?: { label?: string }
+    }
+  }
+
+  const direct = anyPred.best_market ?? anyPred.bestMarket
+  if (direct && (direct.prob ?? direct.probability) !== undefined) {
+    const rawLabel = direct.market ?? direct.label ?? direct.rule?.label
+    const label = formatMarketLabel(rawLabel, match)
+    if (label) {
+      return { label, prob: direct.prob ?? direct.probability ?? 0 }
+    }
+  }
+
+  if (prediction.type === "match_result") {
+    const p = prediction
+    const opps = p.analytics?.opportunities ?? []
+    if (opps.length > 0) {
+      const best = opps.reduce((acc, cur) => (cur.prob > acc.prob ? cur : acc))
+      return { label: best.label, prob: best.prob }
+    }
+    const home = p.homeWin?.probability ?? 0
+    const draw = p.draw?.probability ?? 0
+    const away = p.awayWin?.probability ?? 0
+    const best = Math.max(home, draw, away)
+    const label = best === home ? "V1" : best === draw ? "Nul" : "V2"
+    return { label, prob: best }
+  }
+
+  return null
+}
+
 const MatchCardCompact = React.forwardRef<HTMLDivElement, MatchCardCompactProps>(
   ({ match, onClick, onFavoriteToggle, className, ...props }, ref) => {
     const [isRippling, setIsRippling] = React.useState(false)
     const [ripplePosition, setRipplePosition] = React.useState({ x: 0, y: 0 })
     const internalRef = React.useRef<HTMLDivElement>(null)
+    const prediction = match.prediction
+    const leagueLogo = (match.league?.logo || "").trim() || "/globe.svg"
+    const homeLogo = (match.homeTeam?.logo || "").trim() || "/icon-32.png"
+    const awayLogo = (match.awayTeam?.logo || "").trim() || "/icon-32.png"
 
     // Swipe handlers pour favorite toggle
     const { ref: swipeRef, ...swipeHandlers } = useSwipeable({
@@ -111,7 +247,7 @@ const MatchCardCompact = React.forwardRef<HTMLDivElement, MatchCardCompactProps>
         {...swipeHandlers}
         onClick={handleClick}
         className={cn(
-          "relative h-[200px] p-4 rounded-lg border-2 transition-all cursor-pointer overflow-hidden",
+          "relative min-h-[200px] p-4 rounded-lg border-2 transition-all cursor-pointer overflow-hidden",
           "hover:border-[var(--lime)] active:scale-[0.98]",
           "touch-manipulation select-none flex flex-col",
           match.isFavorite
@@ -141,7 +277,7 @@ const MatchCardCompact = React.forwardRef<HTMLDivElement, MatchCardCompactProps>
         <div className="flex items-center gap-2 min-w-0 mb-3">
           <div className="w-4 h-4 shrink-0 relative">
             <Image
-              src={match.league.logo}
+              src={leagueLogo}
               alt=""
               fill
               sizes="16px"
@@ -161,7 +297,7 @@ const MatchCardCompact = React.forwardRef<HTMLDivElement, MatchCardCompactProps>
           <div className="flex flex-col items-center flex-1 min-w-0">
             <div className="w-10 h-10 shrink-0 relative">
               <Image
-                src={match.homeTeam.logo}
+                src={homeLogo}
                 alt={match.homeTeam.name}
                 fill
                 sizes="40px"
@@ -214,7 +350,7 @@ const MatchCardCompact = React.forwardRef<HTMLDivElement, MatchCardCompactProps>
           <div className="flex flex-col items-center flex-1 min-w-0">
             <div className="w-10 h-10 shrink-0 relative">
               <Image
-                src={match.awayTeam.logo}
+                src={awayLogo}
                 alt={match.awayTeam.name}
                 fill
                 sizes="40px"
@@ -284,6 +420,21 @@ const MatchCardCompact = React.forwardRef<HTMLDivElement, MatchCardCompactProps>
             </div>
           )}
         </div>
+
+        {/* Best market */}
+        {(() => {
+          const bestMarket = getBestMarket(prediction, match)
+          if (!bestMarket) return null
+          return (
+            <div className="mt-3 flex justify-center">
+              <div className="inline-flex items-center gap-2 rounded-full border border-[var(--lime)]/40 bg-[var(--lime)]/10 px-3 py-1 text-[11px] font-semibold text-[var(--navy)]">
+                <span className="text-[10px] text-[var(--navy)]/70">Proposition :</span>
+                <span className="font-bold">{bestMarket.label}</span>
+                <span className="tabular-nums">{formatPercent(bestMarket.prob)}</span>
+              </div>
+            </div>
+          )
+        })()}
 
         {/* Favorite button */}
         {onFavoriteToggle && (

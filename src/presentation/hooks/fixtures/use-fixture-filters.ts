@@ -143,7 +143,7 @@ export function useFixtureFilters(matches: MatchWithPrediction[], initialDate?: 
   const [searchQuery, setSearchQuery] = useState("");
 
   // Par défaut, afficher uniquement les matchs des ligues populaires
-  const [showAllMatches, setShowAllMatches] = useState(false);
+  const [showAllMatches, setShowAllMatches] = useState(true);
 
   // Extract unique leagues from matches (grouped by cleaned name)
   const leagues = useMemo((): LeagueInfo[] => {
