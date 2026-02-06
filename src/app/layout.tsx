@@ -1,10 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import dynamic from "next/dynamic";
-// import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { AppProviders } from "@/app/providers";
-
-// ⚠️ runtime = "nodejs" removed - incompatible with cacheComponents in Next.js 16
 
 const WebVitalsReporter = dynamic(
   () => import("@/infrastructure/observability/web-vitals-reporter").then((m) => m.WebVitalsReporter)
@@ -18,29 +16,20 @@ const ServiceWorkerRegister = dynamic(
   () => import("@/shared/pwa/service-worker-register").then((m) => m.ServiceWorkerRegister)
 );
 
-// Google Fonts temporarily disabled due to build environment restrictions
-// const geistSans = Geist({
-//   variable: "--font-geist-sans",
-//   subsets: ["latin"],
-//   display: "swap",
-//   preload: true,
-//   fallback: ["system-ui", "arial"],
-// });
-
-// const geistMono = Geist_Mono({
-//   variable: "--font-geist-mono",
-//   subsets: ["latin"],
-//   display: "swap",
-//   preload: true,
-//   fallback: ["Courier New", "monospace"],
-// });
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+  display: "swap",
+  preload: true,
+  fallback: ["system-ui", "-apple-system", "sans-serif"],
+});
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
   userScalable: true,
-  themeColor: '#C8DC3F',
+  themeColor: '#003366',
 }
 
 export const metadata: Metadata = {
@@ -121,7 +110,7 @@ export default function RootLayout({
   return (
     <html lang="fr" suppressHydrationWarning>
       <body
-        className="antialiased"
+        className={`${inter.variable} antialiased`}
       >
         <AppProviders>{children}</AppProviders>
         <WebVitalsReporter />

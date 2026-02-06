@@ -12,8 +12,8 @@ const spinnerVariants = cva(
         lg: "h-8 w-8 border-[3px]",
       },
       variant: {
-        primary: "text-[#1E3A8A]", // Navy - BetLab primary
-        accent: "text-[#84CC16]", // Lime - BetLab accent
+        primary: "text-navy",
+        accent: "text-lime",
         white: "text-white",
         muted: "text-muted-foreground",
       },

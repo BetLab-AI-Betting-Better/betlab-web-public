@@ -26,17 +26,16 @@ export function PredictionsSelector({ selectedType, onTypeChange }: PredictionsS
     { id: "external", label: "External" },
     { id: "over15", label: "Over 1.5" },
     { id: "btts", label: "BTTS" },
-    { id: "exact", label: "Exact Score" },
+    { id: "exact", label: "Score exact" },
     { id: "htft", label: "HT/FT" },
-    { id: "half", label: "Half Compare" },
+    { id: "half", label: "Mi-temps" },
     { id: "cleansheet", label: "Clean Sheet" },
     { id: "corners", label: "Corners" },
   ]
 
   return (
     <div className="relative">
-      {/* Tabs scrollables */}
-      <div className="flex gap-1 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2">
+      <div className="flex gap-1 overflow-x-auto snap-x scrollbar-hide p-1 bg-gray-100/70 rounded-full">
         {types.map((type) => {
           const isActive = selectedType === type.id
 
@@ -45,13 +44,13 @@ export function PredictionsSelector({ selectedType, onTypeChange }: PredictionsS
               key={type.id}
               onClick={() => onTypeChange(type.id)}
               className={cn(
-                "flex-shrink-0 snap-start px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap min-h-[44px]",
+                "flex-shrink-0 snap-start px-3.5 py-1.5 rounded-full text-[12px] font-medium transition-all duration-200 whitespace-nowrap",
                 isActive
-                  ? "bg-navy text-white"
-                  : "bg-muted text-muted-foreground hover:bg-muted/80"
+                  ? "bg-navy text-white shadow-sm"
+                  : "text-gray-500 hover:text-navy hover:bg-white/80"
               )}
               aria-pressed={isActive}
-              aria-label={`Sélectionner ${type.label}`}
+              aria-label={`Selectionner ${type.label}`}
             >
               {type.label}
             </button>
@@ -59,8 +58,8 @@ export function PredictionsSelector({ selectedType, onTypeChange }: PredictionsS
         })}
       </div>
 
-      {/* Fade gradient pour indiquer le scroll */}
-      <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none" />
+      {/* Fade gradient right */}
+      <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none rounded-r-full" />
     </div>
   )
 }

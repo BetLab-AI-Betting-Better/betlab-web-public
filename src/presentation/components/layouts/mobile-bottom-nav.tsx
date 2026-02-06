@@ -22,36 +22,11 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  {
-    id: 'home',
-    label: 'Home',
-    icon: Home,
-    ariaLabel: 'Navigate to home',
-  },
-  {
-    id: 'virtual',
-    label: 'Virtual',
-    icon: Zap,
-    ariaLabel: 'Virtual Match Builder',
-  },
-  {
-    id: 'matches',
-    label: 'Matches',
-    icon: Calendar,
-    ariaLabel: 'View matches',
-  },
-  {
-    id: 'favorites',
-    label: 'Favorites',
-    icon: Star,
-    ariaLabel: 'View favorites',
-  },
-  {
-    id: 'settings',
-    label: 'Settings',
-    icon: User,
-    ariaLabel: 'Open settings',
-  },
+  { id: 'home', label: 'Home', icon: Home, ariaLabel: 'Navigate to home' },
+  { id: 'virtual', label: 'Virtual', icon: Zap, ariaLabel: 'Virtual Match Builder' },
+  { id: 'matches', label: 'Matches', icon: Calendar, ariaLabel: 'View matches' },
+  { id: 'favorites', label: 'Favoris', icon: Star, ariaLabel: 'View favorites' },
+  { id: 'settings', label: 'Compte', icon: User, ariaLabel: 'Open settings' },
 ]
 
 export function MobileBottomNav({
@@ -61,40 +36,27 @@ export function MobileBottomNav({
   className,
 }: MobileBottomNavProps) {
   const handleTabClick = (tabId: typeof activeTab) => {
-    // Trigger haptic feedback if supported
     if (typeof window !== 'undefined' && 'vibrate' in navigator) {
       navigator.vibrate(10)
     }
-
     onTabChange(tabId)
-  }
-
-  const handleKeyDown = (
-    e: React.KeyboardEvent,
-    tabId: typeof activeTab
-  ) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault()
-      handleTabClick(tabId)
-    }
   }
 
   return (
     <nav
       className={cn(
         'fixed bottom-0 left-0 right-0 z-50',
-        'h-16 bg-background/95 backdrop-blur-md',
-        'border-t border-border',
+        'bg-surface-elevated/95 backdrop-blur-xl',
+        'border-t border-gray-200/60',
         'transition-transform duration-200 ease-in-out',
         'lg:hidden',
-        // Safe area support for iOS notch
         'pb-[env(safe-area-inset-bottom,0px)]',
         className
       )}
       role="navigation"
       aria-label="Mobile navigation"
     >
-      <div className="flex h-16 items-center justify-around px-2">
+      <div className="flex h-[56px] items-center justify-around px-1">
         {navItems.map((item) => {
           const Icon = item.icon
           const isActive = activeTab === item.id
@@ -112,14 +74,12 @@ export function MobileBottomNav({
             <button
               key={item.id}
               onClick={() => handleTabClick(item.id)}
-              onKeyDown={(e: React.KeyboardEvent) => handleKeyDown(e, item.id)}
               className={cn(
                 'relative flex flex-col items-center justify-center',
-                'w-16 h-16',
-                'transition-all duration-200 ease-in-out',
+                'w-14 h-14',
+                'transition-all duration-200 ease-out',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-                'active:scale-95',
-                isActive && 'scale-110'
+                'active:scale-95'
               )}
               aria-label={item.ariaLabel}
               aria-current={isActive ? 'page' : undefined}
@@ -128,13 +88,12 @@ export function MobileBottomNav({
               {hasNotification && (
                 <span
                   className={cn(
-                    'absolute top-1 right-3',
+                    'absolute top-0.5 right-1.5',
                     'flex items-center justify-center',
-                    'min-w-[18px] h-[18px] px-1',
-                    'text-[10px] font-bold text-white',
-                    'bg-red-500 rounded-full',
-                    'animate-in zoom-in-50',
-                    notificationCount && notificationCount > 99 ? 'px-1.5' : ''
+                    'min-w-[16px] h-[16px] px-1',
+                    'text-[9px] font-bold text-white',
+                    'bg-live rounded-full',
+                    'animate-in zoom-in-50'
                   )}
                   aria-label={`${notificationCount} notifications`}
                 >
@@ -144,35 +103,35 @@ export function MobileBottomNav({
                 </span>
               )}
 
+              {/* Active pill background */}
+              {isActive && (
+                <span
+                  className="absolute top-1 inset-x-2 h-[30px] bg-lime/15 rounded-lg animate-slide-in"
+                  aria-hidden="true"
+                />
+              )}
+
               {/* Icon */}
               <Icon
                 className={cn(
-                  'w-6 h-6 transition-colors duration-200',
+                  'w-5 h-5 transition-all duration-200 relative z-10',
                   isActive
-                    ? 'text-[hsl(var(--navy))]'
-                    : 'text-muted-foreground'
+                    ? 'text-navy stroke-[2.5px]'
+                    : 'text-gray-400'
                 )}
               />
 
               {/* Label */}
               <span
                 className={cn(
-                  'mt-1 text-xs font-medium transition-colors duration-200',
+                  'mt-0.5 text-[10px] transition-all duration-200 relative z-10',
                   isActive
-                    ? 'text-[hsl(var(--navy))]'
-                    : 'text-muted-foreground'
+                    ? 'text-navy font-semibold'
+                    : 'text-gray-400 font-medium'
                 )}
               >
                 {item.label}
               </span>
-
-              {/* Active indicator */}
-              {isActive && (
-                <span
-                  className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-1 bg-[hsl(var(--navy))] rounded-full"
-                  aria-hidden="true"
-                />
-              )}
             </button>
           )
         })}

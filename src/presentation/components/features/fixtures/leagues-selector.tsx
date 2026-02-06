@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import { Grid3x3, Star } from "lucide-react"
+import { LayoutGrid, Star } from "lucide-react"
 import { cn } from "@/shared/utils"
 
 interface League {
@@ -20,126 +20,82 @@ interface LeaguesSelectorProps {
 
 export function LeaguesSelector({ leagues, selectedLeagueId, onLeagueChange }: LeaguesSelectorProps) {
   return (
-    <div className="h-[90px] overflow-x-auto scrollbar-hide">
-      <div className="flex gap-3 px-4">
-        {/* Toutes */}
-        <button
-          onClick={() => onLeagueChange("all")}
-          className="flex flex-col items-center shrink-0 w-16 touch-manipulation"
-        >
-          <div
-            className={cn(
-              "w-16 h-16 rounded-full flex items-center justify-center transition-all duration-200",
-              "border-2",
-              selectedLeagueId === "all"
-                ? "bg-[var(--lime)]/15 border-[var(--lime)]"
-                : "bg-transparent border-[var(--navy)]"
-            )}
-          >
-            <Grid3x3
-              className={cn(
-                "w-8 h-8",
-                selectedLeagueId === "all" ? "text-[var(--lime)]" : "text-[var(--navy)]"
-              )}
-            />
-          </div>
-          <span
-            className={cn(
-              "text-[10px] mt-1 text-center",
-              selectedLeagueId === "all"
-                ? "font-bold text-[var(--lime)]"
-                : "font-normal text-[var(--text-secondary)]"
-            )}
-          >
-            Toutes
-          </span>
-        </button>
+    <div className="flex gap-1.5 overflow-x-auto scrollbar-hide py-0.5">
+      {/* Toutes */}
+      <button
+        onClick={() => onLeagueChange("all")}
+        className={cn(
+          "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium transition-all duration-200 shrink-0",
+          "border",
+          selectedLeagueId === "all"
+            ? "bg-navy text-white border-navy shadow-sm"
+            : "bg-white text-gray-600 border-gray-200 hover:border-navy/30 hover:text-navy"
+        )}
+      >
+        <LayoutGrid className="w-3 h-3" />
+        Toutes
+      </button>
 
-        {/* Favoris */}
-        <button
-          onClick={() => onLeagueChange("favorites")}
-          className="flex flex-col items-center shrink-0 w-16 touch-manipulation"
-        >
-          <div
-            className={cn(
-              "w-16 h-16 rounded-full flex items-center justify-center transition-all duration-200",
-              "border-2",
-              selectedLeagueId === "favorites"
-                ? "bg-[var(--lime)]/15 border-[var(--lime)]"
-                : "bg-transparent border-[var(--navy)]"
-            )}
-          >
-            <Star
-              className={cn(
-                "w-8 h-8",
-                selectedLeagueId === "favorites" ? "text-[var(--lime)] fill-[var(--lime)]" : "text-amber-500 fill-amber-500"
-              )}
-            />
-          </div>
-          <span
-            className={cn(
-              "text-[10px] mt-1 text-center",
-              selectedLeagueId === "favorites"
-                ? "font-bold text-[var(--lime)]"
-                : "font-normal text-[var(--text-secondary)]"
-            )}
-          >
-            Favoris
-          </span>
-        </button>
+      {/* Favoris */}
+      <button
+        onClick={() => onLeagueChange("favorites")}
+        className={cn(
+          "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium transition-all duration-200 shrink-0",
+          "border",
+          selectedLeagueId === "favorites"
+            ? "bg-amber-50 text-amber-700 border-amber-300 shadow-sm"
+            : "bg-white text-gray-600 border-gray-200 hover:border-amber-300 hover:text-amber-600"
+        )}
+      >
+        <Star className={cn(
+          "w-3 h-3",
+          selectedLeagueId === "favorites" ? "fill-amber-500" : "fill-none"
+        )} />
+        Favoris
+      </button>
 
-        {/* Leagues */}
-        {leagues.map((league) => {
-          const isSelected = selectedLeagueId === league.id
-          return (
-            <button
-              key={league.id}
-              onClick={() => onLeagueChange(league.id)}
-              className="flex flex-col items-center shrink-0 w-20 touch-manipulation"
-            >
-              <div
-                className={cn(
-                  "w-16 h-16 rounded-full flex items-center justify-center transition-all duration-200",
-                  "border-2",
-                  isSelected
-                    ? "bg-[var(--lime)]/15 border-[var(--lime)]"
-                    : "bg-transparent border-[var(--navy)]"
-                )}
-              >
-                {league.logo ? (
-                  <div className="relative w-10 h-10">
-                    <Image
-                      src={league.logo}
-                      alt={league.name}
-                      fill
-                      className="object-contain"
-                      loading="lazy"
-                      quality={75}
-                    />
-                  </div>
-                ) : (
-                  <Grid3x3
-                    className={cn(
-                      "w-8 h-8",
-                      isSelected ? "text-[var(--lime)]" : "text-[var(--navy)]"
-                    )}
-                  />
-                )}
+      {/* Separator */}
+      <div className="w-px bg-gray-200 self-stretch my-0.5 shrink-0" />
+
+      {/* Leagues */}
+      {leagues.map((league) => {
+        const isSelected = selectedLeagueId === league.id
+        return (
+          <button
+            key={league.id}
+            onClick={() => onLeagueChange(league.id)}
+            className={cn(
+              "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium transition-all duration-200 shrink-0",
+              "border",
+              isSelected
+                ? "bg-navy-50 text-navy border-navy/30 shadow-sm"
+                : "bg-white text-gray-600 border-gray-200 hover:border-navy/30 hover:text-navy"
+            )}
+          >
+            {league.logo && (
+              <div className="relative w-4 h-4 shrink-0">
+                <Image
+                  src={league.logo}
+                  alt=""
+                  fill
+                  className="object-contain"
+                  loading="lazy"
+                  quality={75}
+                />
               </div>
-              <span
-                className={cn(
-                  "text-[9px] mt-1 text-center line-clamp-1 w-full",
-                  isSelected
-                    ? "font-bold text-[var(--lime)]"
-                    : "font-normal text-[var(--text-secondary)]"
-                )}
-              >
-                {league.name}
+            )}
+            <span className="truncate max-w-[80px]">{league.name}</span>
+            {league.matchCount > 0 && (
+              <span className={cn(
+                "text-[9px] font-bold tabular-nums min-w-[16px] text-center",
+                isSelected ? "text-navy/60" : "text-gray-400"
+              )}>
+                {league.matchCount}
               </span>
-            </button>
-          )
-        })}
-      </div>
+            )}
+          </button>
+        )
+      })}
     </div>
   )
 }

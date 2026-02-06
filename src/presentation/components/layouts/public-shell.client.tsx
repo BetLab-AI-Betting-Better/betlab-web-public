@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { DesktopSidebar, MobileBottomNav, MobileHeader } from "@/presentation/components/layouts";
+import { DesktopHeader, MobileBottomNav, MobileHeader } from "@/presentation/components/layouts";
 import type { CurrentUser } from "@/core/entities/user.entity";
 
 type NavTab = "home" | "virtual" | "matches" | "favorites" | "settings";
@@ -45,30 +45,33 @@ export function PublicShell({ children, user }: PublicShellProps) {
     }
   };
 
+  const userInfo = user
+    ? {
+        name: user.email || "User",
+        email: user.email || "",
+        avatar: undefined,
+      }
+    : undefined;
+
   return (
     <div className="min-h-screen bg-background">
-      <DesktopSidebar
-        className="hidden lg:flex"
-        activeTab={getActiveTab()}
-        onTabChange={handleTabChange}
-        user={
-          user
-            ? {
-              name: user.email || "User",
-              email: user.email || "",
-              avatar: undefined,
-            }
-            : undefined
-        }
-      />
-
       <MobileHeader
         className="lg:hidden"
         avatarFallback={user?.email?.[0].toUpperCase() || "U"}
       />
 
-      <main className="lg:ml-72">
-        <div className="pb-[calc(64px+env(safe-area-inset-bottom))] lg:pb-0">{children}</div>
+      <DesktopHeader
+        activeTab={getActiveTab()}
+        onTabChange={handleTabChange}
+        user={userInfo}
+        onProfileClick={() => router.push("/settings")}
+        onSettingsClick={() => router.push("/settings")}
+      />
+
+      <main className="max-w-7xl mx-auto">
+        <div className="pb-[calc(56px+env(safe-area-inset-bottom))] lg:pb-0">
+          {children}
+        </div>
       </main>
 
       <MobileBottomNav

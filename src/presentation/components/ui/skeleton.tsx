@@ -14,11 +14,11 @@ function Skeleton({
   return (
     <div
       className={cn(
-        'bg-muted',
-        animate && 'animate-pulse',
+        'bg-gray-100',
+        animate && 'animate-shimmer',
         variant === 'circle' && 'rounded-full',
         variant === 'text' && 'rounded h-4',
-        variant === 'default' && 'rounded-md',
+        variant === 'default' && 'rounded-lg',
         className
       )}
       {...props}

@@ -28,7 +28,7 @@ export default async function HomePage(props: PageProps) {
   const asOf = typeof dateParam === "string" ? new Date(dateParam) : new Date();
 
   return (
-    <div className="container mx-auto space-y-6 p-4">
+    <div className="px-4 py-5 lg:px-6">
       <Suspense fallback={<LoadingState />}>
         {/* Force re-render key when date changes to ensure Suspense triggers */}
         <HomeFixturesSection

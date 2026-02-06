@@ -34,36 +34,11 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  {
-    id: 'home',
-    label: 'Home',
-    icon: Home,
-    ariaLabel: 'Navigate to home',
-  },
-  {
-    id: 'virtual',
-    label: 'Virtual',
-    icon: Zap,
-    ariaLabel: 'Virtual Match Builder',
-  },
-  {
-    id: 'matches',
-    label: 'Matches',
-    icon: Calendar,
-    ariaLabel: 'View matches',
-  },
-  {
-    id: 'favorites',
-    label: 'Favorites',
-    icon: Star,
-    ariaLabel: 'View favorites',
-  },
-  {
-    id: 'settings',
-    label: 'Settings',
-    icon: User,
-    ariaLabel: 'Open settings',
-  },
+  { id: 'home', label: 'Home', icon: Home, ariaLabel: 'Navigate to home' },
+  { id: 'virtual', label: 'Virtual', icon: Zap, ariaLabel: 'Virtual Match Builder' },
+  { id: 'matches', label: 'Matches', icon: Calendar, ariaLabel: 'View matches' },
+  { id: 'favorites', label: 'Favoris', icon: Star, ariaLabel: 'View favorites' },
+  { id: 'settings', label: 'Compte', icon: User, ariaLabel: 'Open settings' },
 ]
 
 export function DesktopSidebar({
@@ -95,32 +70,28 @@ export function DesktopSidebar({
         className={cn(
           'flex items-center gap-3 w-full',
           'px-3 py-2.5 rounded-lg',
-          'transition-all duration-200',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+          'transition-all duration-200 ease-out',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime/40',
           'group relative',
           isActive
-            ? 'bg-primary/10 text-primary font-medium'
-            : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+            ? 'bg-white/[0.12] text-white font-medium'
+            : 'text-white/50 hover:text-white/80 hover:bg-white/[0.06]',
           collapsed && 'justify-center px-2'
         )}
         aria-label={item.ariaLabel}
         aria-current={isActive ? 'page' : undefined}
       >
-        <Icon className={cn('h-5 w-5 shrink-0', isActive && 'text-primary')} />
+        <Icon className={cn('h-5 w-5 shrink-0 transition-colors', isActive && 'text-lime')} />
 
         {!collapsed && (
-          <span className="transition-opacity duration-200 opacity-100">
+          <span className="text-sm transition-opacity duration-200 opacity-100">
             {item.label}
           </span>
         )}
 
         {isActive && (
           <span
-            className={cn(
-              'absolute left-0 top-1/2 -translate-y-1/2',
-              'w-1 h-8 bg-primary rounded-r-full',
-              'transition-all duration-200'
-            )}
+            className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-7 bg-lime rounded-r-full animate-slide-in"
             aria-hidden="true"
           />
         )}
@@ -146,53 +117,56 @@ export function DesktopSidebar({
       <aside
         className={cn(
           'fixed left-0 top-0 h-screen',
-          'bg-background border-r border-border',
+          'gradient-sidebar',
           'hidden lg:flex flex-col',
           'transition-all duration-300 ease-in-out',
-          collapsed ? 'w-20' : 'w-72',
+          'border-r border-white/[0.06]',
+          collapsed ? 'w-[72px]' : 'w-[260px]',
           className
         )}
         role="navigation"
         aria-label="Main navigation"
       >
-        {/* Top section - Logo & Collapse button */}
+        {/* Logo & Collapse */}
         <div
           className={cn(
-            'flex items-center justify-between p-6 border-b border-border',
+            'flex items-center justify-between p-5 border-b border-white/[0.06]',
             collapsed && 'justify-center p-4'
           )}
         >
           {!collapsed ? (
             <>
-              <div className="flex items-center gap-2">
-                <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center shrink-0">
-                  <span className="text-white font-bold text-lg">BL</span>
+              <div className="flex items-center gap-2.5">
+                <div className="h-9 w-9 rounded-lg bg-lime flex items-center justify-center shrink-0 shadow-md">
+                  <span className="text-navy-950 font-black text-sm tracking-tight">BL</span>
                 </div>
-                <span className="text-xl font-bold text-foreground">BetLab</span>
+                <span className="text-lg font-bold text-white tracking-tight">
+                  Bet<span className="text-lime">Lab</span>
+                </span>
               </div>
               {onToggleCollapse && (
                 <Button
                   variant="ghost"
-                  size="icon"
+                  size="icon-sm"
                   onClick={onToggleCollapse}
-                  className="shrink-0"
+                  className="shrink-0 text-white/40 hover:text-white/70 hover:bg-white/[0.06]"
                   aria-label="Collapse sidebar"
                 >
-                  <ChevronLeft className="h-5 w-5" />
+                  <ChevronLeft className="h-4 w-4" />
                 </Button>
               )}
             </>
           ) : (
             <div className="flex flex-col items-center gap-2">
-              <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center">
-                <span className="text-white font-bold text-lg">BL</span>
+              <div className="h-9 w-9 rounded-lg bg-lime flex items-center justify-center shadow-md">
+                <span className="text-navy-950 font-black text-sm tracking-tight">BL</span>
               </div>
               {onToggleCollapse && (
                 <Button
                   variant="ghost"
-                  size="icon"
+                  size="icon-sm"
                   onClick={onToggleCollapse}
-                  className="h-8 w-8"
+                  className="h-7 w-7 text-white/40 hover:text-white/70 hover:bg-white/[0.06]"
                   aria-label="Expand sidebar"
                 >
                   <ChevronRight className="h-4 w-4" />
@@ -202,37 +176,36 @@ export function DesktopSidebar({
           )}
         </div>
 
-        {/* Middle section - Navigation items */}
-        <nav className="flex-1 overflow-y-auto p-4 space-y-1">
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto p-3 space-y-0.5">
           {navItems.map((item) => (
             <NavButton key={item.id} item={item} />
           ))}
         </nav>
 
-        {/* Bottom section - User profile & actions */}
-        <div className="border-t border-border p-4 space-y-2">
-          {/* User profile */}
+        {/* User profile & Logout */}
+        <div className="border-t border-white/[0.06] p-3 space-y-2">
           {user && (
             <div
               className={cn(
-                'flex items-center gap-3 p-3 rounded-lg',
-                'bg-accent/50',
+                'flex items-center gap-3 p-2.5 rounded-lg',
+                'bg-white/[0.04]',
                 collapsed && 'justify-center p-2'
               )}
             >
-              <Avatar className={cn('shrink-0', collapsed ? 'h-8 w-8' : 'h-10 w-10')}>
+              <Avatar className={cn('shrink-0 ring-2 ring-lime/30', collapsed ? 'h-8 w-8' : 'h-9 w-9')}>
                 <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="text-sm font-medium">
+                <AvatarFallback className="text-xs font-semibold bg-navy-700 text-white">
                   {getInitials(user.name)}
                 </AvatarFallback>
               </Avatar>
 
               {!collapsed && (
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">
+                  <p className="text-sm font-medium text-white truncate">
                     {user.name}
                   </p>
-                  <p className="text-xs text-muted-foreground truncate">
+                  <p className="text-xs text-white/40 truncate">
                     {user.email}
                   </p>
                 </div>
@@ -240,27 +213,26 @@ export function DesktopSidebar({
             </div>
           )}
 
-          {/* Logout button */}
           {onLogout && (
             <Tooltip delayDuration={0}>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
-                  size={collapsed ? 'icon' : 'default'}
+                  size={collapsed ? 'icon-sm' : 'default'}
                   onClick={onLogout}
                   className={cn(
-                    'w-full text-destructive hover:text-destructive hover:bg-destructive/10',
+                    'w-full text-red-400/70 hover:text-red-400 hover:bg-red-500/10',
                     !collapsed && 'justify-start'
                   )}
                   aria-label="Logout"
                 >
-                  <LogOut className="h-5 w-5" />
-                  {!collapsed && <span className="ml-3">Logout</span>}
+                  <LogOut className="h-4 w-4" />
+                  {!collapsed && <span className="ml-2 text-sm">Déconnexion</span>}
                 </Button>
               </TooltipTrigger>
               {collapsed && (
                 <TooltipContent side="right" className="font-medium">
-                  Logout
+                  Déconnexion
                 </TooltipContent>
               )}
             </Tooltip>

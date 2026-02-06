@@ -4,41 +4,37 @@ import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/shared/utils"
 
-/**
- * BetLab Badge Component
- *
- * Usage examples:
- * - Success: <Badge variant="success">Won</Badge>
- * - Warning: <Badge variant="warning">Pending</Badge>
- * - Error: <Badge variant="error">Lost</Badge>
- * - Live: <Badge variant="live">LIVE</Badge>
- * - Mobile-friendly with min-height 28px for easy tapping
- */
 const badgeVariants = cva(
-  "inline-flex items-center justify-center rounded-full border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden min-h-[28px]",
+  "inline-flex items-center justify-center border px-2.5 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 aria-invalid:border-destructive transition-colors overflow-hidden",
   {
     variants: {
       variant: {
         default:
-          "border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary/90",
+          "border-transparent bg-navy text-white rounded-md",
         secondary:
-          "border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90",
+          "border-transparent bg-navy-100 text-navy rounded-md",
         destructive:
-          "border-transparent bg-destructive text-white [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20",
+          "border-transparent bg-destructive text-white rounded-md focus-visible:ring-destructive/20",
         outline:
-          "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
+          "text-foreground border-gray-200 rounded-md",
         success:
-          "border-transparent bg-[var(--success)] text-white [a&]:hover:bg-[var(--success)]/90 font-semibold",
+          "border-transparent bg-success/10 text-success rounded-md font-semibold",
         warning:
-          "border-transparent bg-[var(--warning)] text-white [a&]:hover:bg-[var(--warning)]/90 font-semibold",
+          "border-transparent bg-warning/10 text-warning rounded-md font-semibold",
         error:
-          "border-transparent bg-[var(--error)] text-white [a&]:hover:bg-[var(--error)]/90 font-semibold",
+          "border-transparent bg-error/10 text-error rounded-md font-semibold",
         live:
-          "border-transparent bg-[var(--live)] text-white [a&]:hover:bg-[var(--live)]/90 font-bold animate-pulse",
+          "border-transparent bg-live text-white rounded-full font-bold animate-live-glow",
+      },
+      size: {
+        default: "h-6 text-xs",
+        sm: "h-5 text-[10px] px-1.5",
+        lg: "h-7 text-sm px-3",
       },
     },
     defaultVariants: {
       variant: "default",
+      size: "default",
     },
   }
 )
@@ -46,6 +42,7 @@ const badgeVariants = cva(
 function Badge({
   className,
   variant,
+  size,
   asChild = false,
   ...props
 }: React.ComponentProps<"span"> &
@@ -55,7 +52,7 @@ function Badge({
   return (
     <Comp
       data-slot="badge"
-      className={cn(badgeVariants({ variant }), className)}
+      className={cn(badgeVariants({ variant, size }), className)}
       {...props}
     />
   )

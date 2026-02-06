@@ -6,4 +6,5 @@
 
 export { MobileBottomNav, type MobileBottomNavProps } from './mobile-bottom-nav'
 export { MobileHeader, type MobileHeaderProps } from './mobile-header'
+export { DesktopHeader, type DesktopHeaderProps } from './desktop-header'
 export { DesktopSidebar, type DesktopSidebarProps } from './desktop-sidebar'

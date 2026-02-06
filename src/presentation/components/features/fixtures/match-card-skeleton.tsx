@@ -1,31 +1,8 @@
-/**
- * MatchCardSkeleton - Skeleton loader pour MatchCard
- *
- * Affiche un état de chargement animé pendant que les matchs sont récupérés.
- * - Structure identique à MatchCardCompact
- * - Animation pulse
- * - Height: min 120px
- * - Mobile-optimized
- * - Support dark mode
- *
- * @example
- * ```tsx
- * // Affichage de 5 skeletons pendant le chargement
- * {isLoading && Array.from({ length: 5 }).map((_, i) => (
- *   <MatchCardSkeleton key={i} />
- * ))}
- * ```
- */
-
 import * as React from "react"
 import { cn } from "@/shared/utils"
 
 export interface MatchCardSkeletonProps
   extends React.HTMLAttributes<HTMLDivElement> {
-  /**
-   * Afficher le star button skeleton
-   * @default true
-   */
   showFavorite?: boolean
 }
 
@@ -35,7 +12,7 @@ const MatchCardSkeleton = React.forwardRef<HTMLDivElement, MatchCardSkeletonProp
       <div
         ref={ref}
         className={cn(
-          "relative min-h-[120px] p-4 rounded-lg border-2 border-border bg-card",
+          "relative min-h-[120px] p-4 rounded-xl border border-gray-200/60 bg-surface-elevated shadow-sm",
           className
         )}
         role="status"
@@ -43,36 +20,35 @@ const MatchCardSkeleton = React.forwardRef<HTMLDivElement, MatchCardSkeletonProp
         {...props}
       >
         {/* Header: League + Time */}
-        <div className="flex items-center justify-between mb-3 animate-pulse">
+        <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-muted rounded-full" />
-            <div className="h-3 w-24 bg-muted rounded" />
+            <div className="w-3.5 h-3.5 bg-gray-100 rounded-full animate-shimmer" />
+            <div className="h-3 w-24 bg-gray-100 rounded-md animate-shimmer" />
           </div>
-          <div className="h-3 w-12 bg-muted rounded" />
+          <div className="h-3 w-12 bg-gray-100 rounded-md animate-shimmer" />
         </div>
 
         {/* Teams */}
-        <div className="flex items-center justify-between gap-4 mb-3 animate-pulse">
-          <div className="flex items-center gap-2 flex-1">
-            <div className="w-8 h-8 bg-muted rounded-full shrink-0" />
-            <div className="h-4 flex-1 bg-muted rounded max-w-[120px]" />
+        <div className="flex items-center justify-between gap-4 mb-3">
+          <div className="flex items-center gap-2.5 flex-1">
+            <div className="w-9 h-9 bg-gray-100 rounded-lg animate-shimmer" />
+            <div className="h-4 flex-1 bg-gray-100 rounded-md max-w-[100px] animate-shimmer" />
           </div>
-          <div className="h-3 w-6 bg-muted rounded" />
-          <div className="flex items-center gap-2 flex-1 justify-end">
-            <div className="h-4 flex-1 bg-muted rounded max-w-[120px]" />
-            <div className="w-8 h-8 bg-muted rounded-full shrink-0" />
+          <div className="h-3 w-6 bg-gray-100 rounded-md animate-shimmer" />
+          <div className="flex items-center gap-2.5 flex-1 justify-end">
+            <div className="h-4 flex-1 bg-gray-100 rounded-md max-w-[100px] animate-shimmer" />
+            <div className="w-9 h-9 bg-gray-100 rounded-lg animate-shimmer" />
           </div>
         </div>
 
-        {/* Prediction placeholder */}
-        <div className="h-12 bg-muted rounded animate-pulse" />
+        {/* Probability bar */}
+        <div className="h-7 bg-gray-100 rounded-lg animate-shimmer" />
 
-        {/* Favorite button skeleton */}
+        {/* Favorite button */}
         {showFavorite && (
-          <div className="absolute top-2 right-2 w-8 h-8 bg-muted rounded-full animate-pulse" />
+          <div className="absolute top-2 right-2 w-8 h-8 bg-gray-100 rounded-full animate-shimmer" />
         )}
 
-        {/* Screen reader text */}
         <span className="sr-only">Chargement du match...</span>
       </div>
     )

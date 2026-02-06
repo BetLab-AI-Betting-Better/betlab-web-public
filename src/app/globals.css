@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* ═══════════════════════════════════════════════════════════
+   BetLab Design System — Premium Foundations
+   Version 4.0 — Refonte Design 2026
+   ═══════════════════════════════════════════════════════════ */
+
 @layer base {
   :root {
     /* Safe area insets pour iOS (notch, dynamic island, etc.) */
@@ -8,32 +13,70 @@
     --safe-area-inset-left: env(safe-area-inset-left, 0px);
     --safe-area-inset-right: env(safe-area-inset-right, 0px);
 
-    /* BetLab Colors - Primaires */
+    /* ── Navy (primaire) ── */
+    --navy-950: #001A33;
+    --navy-900: #002244;
+    --navy-800: #003366;
+    --navy-700: #0A4A7A;
+    --navy-600: #1A6AAF;
+    --navy-100: #E6EFF7;
+    --navy-50: #F0F5FA;
     --navy: #003366;
     --navy-light: #0A4A7A;
     --navy-ultra-light: #E6EFF7;
-    --lime: #C8DC3F;
-    --lime-light: #E5F077;
-    --lime-ultra-light: #F7FCE0;
 
-    /* Neutres */
-    --background: #F9FAFB;
-    --foreground: #111827;
+    /* ── Lime (accent — légèrement adouci) ── */
+    --lime-600: #A0B530;
+    --lime-500: #B8CC3A;
+    --lime-400: #C8DC3F;
+    --lime-300: #D8EC6F;
+    --lime-200: #E5F29A;
+    --lime-100: #F0F7D4;
+    --lime-50: #F8FBEB;
+    --lime: #B8CC3A;
+    --lime-light: #D8EC6F;
+    --lime-ultra-light: #F0F7D4;
+
+    /* ── Neutres (tons chauds) ── */
+    --gray-950: #0F1419;
+    --gray-800: #1F2937;
+    --gray-700: #374151;
+    --gray-500: #6B7280;
+    --gray-400: #9CA3AF;
+    --gray-300: #C5CBD3;
+    --gray-200: #E2E6EB;
+    --gray-100: #F1F3F6;
+    --gray-50: #F8F9FB;
+
+    --background: #F8F9FB;
+    --foreground: #0F1419;
     --gray: #6B7280;
-    --gray-light: #E0E0E0;
-    --gray-ultra-light: #F0F0F0;
-    --text-primary: #1F2937;
-    --text-secondary: #4B5563;
+    --gray-light: #E2E6EB;
+    --gray-ultra-light: #F1F3F6;
+    --text-primary: #0F1419;
+    --text-secondary: #374151;
     --text-tertiary: #9CA3AF;
 
-    /* Sémantiques */
+    /* ── Surfaces ── */
+    --surface-elevated: #FFFFFF;
+    --surface-sunken: #F1F3F6;
+    --surface-overlay: rgba(255, 255, 255, 0.88);
+
+    /* ── Sémantiques ── */
     --error: #EF4444;
     --success: #10B981;
     --warning: #F59E0B;
     --info: #3B82F6;
     --live: #DC2626;
 
-    /* shadcn/ui variables */
+    /* ── Shadows ── */
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 4px 8px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+    --shadow-lg: 0 10px 24px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+    --shadow-xl: 0 20px 40px -5px rgba(0, 0, 0, 0.10);
+
+    /* ── shadcn/ui variables ── */
     --card: 0 0% 100%;
     --card-foreground: 222.2 47.4% 11.2%;
     --popover: 0 0% 100%;
@@ -51,24 +94,103 @@
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 47.4% 11.2%;
-    --radius: 0.5rem;
+    --radius: 0.75rem;
   }
 
+  /* ── Dark mode tokens ── */
+  .dark {
+    --navy-950: #0A1628;
+    --navy-900: #0F1E32;
+    --navy-800: #1A2E48;
+    --navy-700: #2A4A6B;
+    --navy-100: #1E3A5C;
+    --navy-50: #152B45;
+    --navy: #4A90C4;
+    --navy-light: #6AAEE0;
+    --navy-ultra-light: #1E3A5C;
 
+    --lime: #D4E85E;
+    --lime-light: #E0F080;
+    --lime-ultra-light: #1A2510;
+    --lime-400: #D4E85E;
+    --lime-100: #1A2510;
+    --lime-50: #141C0D;
+
+    --background: #0F1419;
+    --foreground: #E8ECF0;
+    --gray: #9CA3AF;
+    --gray-light: #2D3748;
+    --gray-ultra-light: #1A2029;
+    --text-primary: #E8ECF0;
+    --text-secondary: #9CA3AF;
+    --text-tertiary: #6B7280;
+
+    --surface-elevated: #1A2029;
+    --surface-sunken: #0A0E13;
+    --surface-overlay: rgba(26, 32, 41, 0.88);
+
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+    --shadow-md: 0 4px 8px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
+    --shadow-lg: 0 10px 24px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.2);
+    --shadow-xl: 0 20px 40px -5px rgba(0, 0, 0, 0.5);
+
+    --card: 220 20% 10%;
+    --card-foreground: 210 20% 92%;
+    --popover: 220 20% 10%;
+    --popover-foreground: 210 20% 92%;
+    --primary: 210 60% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 15% 16%;
+    --secondary-foreground: 210 20% 92%;
+    --muted: 220 15% 16%;
+    --muted-foreground: 215 15% 55%;
+    --accent: 220 15% 16%;
+    --accent-foreground: 210 20% 92%;
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 15% 20%;
+    --input: 220 15% 20%;
+    --ring: 210 60% 55%;
+  }
 }
 
 @theme inline {
-  /* Couleurs Primaires */
+  /* ── Couleurs Navy ── */
+  --color-navy-950: var(--navy-950);
+  --color-navy-900: var(--navy-900);
+  --color-navy-800: var(--navy-800);
+  --color-navy-700: var(--navy-700);
+  --color-navy-100: var(--navy-100);
+  --color-navy-50: var(--navy-50);
   --color-navy: var(--navy);
   --color-navy-light: var(--navy-light);
   --color-navy-ultra-light: var(--navy-ultra-light);
+
+  /* ── Couleurs Lime ── */
+  --color-lime-600: var(--lime-600);
+  --color-lime-500: var(--lime-500);
+  --color-lime-400: var(--lime-400);
+  --color-lime-300: var(--lime-300);
+  --color-lime-200: var(--lime-200);
+  --color-lime-100: var(--lime-100);
+  --color-lime-50: var(--lime-50);
   --color-lime: var(--lime);
   --color-lime-light: var(--lime-light);
   --color-lime-ultra-light: var(--lime-ultra-light);
 
-  /* Neutres */
+  /* ── Neutres ── */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-gray-950: var(--gray-950);
+  --color-gray-800: var(--gray-800);
+  --color-gray-700: var(--gray-700);
+  --color-gray-500: var(--gray-500);
+  --color-gray-400: var(--gray-400);
+  --color-gray-300: var(--gray-300);
+  --color-gray-200: var(--gray-200);
+  --color-gray-100: var(--gray-100);
+  --color-gray-50: var(--gray-50);
   --color-gray: var(--gray);
   --color-gray-light: var(--gray-light);
   --color-gray-ultra-light: var(--gray-ultra-light);
@@ -76,46 +198,65 @@
   --color-text-secondary: var(--text-secondary);
   --color-text-tertiary: var(--text-tertiary);
 
-  /* shadcn/ui colors for Tailwind */
+  /* ── Surfaces ── */
+  --color-surface-elevated: var(--surface-elevated);
+  --color-surface-sunken: var(--surface-sunken);
+
+  /* ── shadcn/ui for Tailwind ── */
   --color-card: #FFFFFF;
   --color-card-foreground: var(--foreground);
   --color-popover: #FFFFFF;
   --color-popover-foreground: var(--foreground);
   --color-primary: var(--navy);
   --color-primary-foreground: #FFFFFF;
-  --color-secondary: var(--navy-ultra-light);
+  --color-secondary: var(--navy-100);
   --color-secondary-foreground: var(--navy);
-  --color-muted: var(--gray-ultra-light);
-  --color-muted-foreground: var(--gray);
-  --color-accent: var(--lime-ultra-light);
+  --color-muted: var(--gray-100);
+  --color-muted-foreground: var(--gray-500);
+  --color-accent: var(--lime-50);
   --color-accent-foreground: var(--navy);
   --color-destructive: var(--error);
   --color-destructive-foreground: #FFFFFF;
-  --color-border: #E5E7EB;
-  --color-input: #E5E7EB;
+  --color-border: var(--gray-200);
+  --color-input: var(--gray-200);
   --color-ring: var(--navy);
 
-  /* Sémantiques */
+  /* ── Sémantiques ── */
   --color-error: var(--error);
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-info: var(--info);
   --color-live: var(--live);
 
-  /* Fonts */
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* ── Fonts ── */
+  --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 
-  /* Radius */
+  /* ── Radius ── */
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: var(--radius);
   --radius-lg: calc(var(--radius) + 4px);
+  --radius-xl: calc(var(--radius) + 8px);
+
+  /* ── Shadows as Tailwind tokens ── */
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
 }
 
+/* ═══════════════════════════════════════════════════════════
+   BASE STYLES
+   ═══════════════════════════════════════════════════════════ */
+
 body {
-  background: hsl(var(--background));
-  color: hsl(var(--foreground));
-  font-family: var(--font-geist-sans, Arial, Helvetica, sans-serif);
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter, system-ui, -apple-system, sans-serif);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 @layer base {
@@ -127,67 +268,68 @@ body {
     @apply bg-background text-foreground;
   }
 
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    @apply text-text-primary font-semibold;
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-text-primary font-semibold tracking-tight;
   }
 
-  h1 {
-    @apply text-4xl;
-  }
-
-  h2 {
-    @apply text-3xl;
-  }
-
-  h3 {
-    @apply text-2xl;
-  }
+  h1 { @apply text-4xl; }
+  h2 { @apply text-3xl; }
+  h3 { @apply text-2xl; }
 
   p {
-    @apply text-text-secondary;
+    @apply text-text-secondary leading-relaxed;
+  }
+
+  /* Tabular nums pour tous les chiffres dans un contexte data */
+  .tabular-nums,
+  [data-numeric] {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
   }
 }
 
+/* ═══════════════════════════════════════════════════════════
+   GRADIENTS
+   ═══════════════════════════════════════════════════════════ */
+
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
+  .gradient-navy {
+    background: linear-gradient(135deg, var(--navy-950), var(--navy-800));
   }
 
-  .gradient-navy {
-    background: linear-gradient(to bottom, var(--navy), var(--navy-light));
+  .gradient-navy-horizontal {
+    background: linear-gradient(90deg, var(--navy-950), var(--navy-700));
   }
 
   .gradient-lime {
-    background: linear-gradient(to bottom right, var(--lime), var(--lime-light));
+    background: linear-gradient(135deg, var(--lime-500), var(--lime-300));
   }
 
   .gradient-card {
-    background: linear-gradient(to bottom right, #FFFFFF, var(--background));
+    background: linear-gradient(180deg, var(--surface-elevated), var(--gray-50));
   }
 
-  /* Hide scrollbar for mobile swipe components */
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+  .gradient-header {
+    background: linear-gradient(180deg, var(--navy-950) 0%, var(--navy-800) 100%);
   }
 
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
+  .gradient-sidebar {
+    background: linear-gradient(180deg, var(--navy-950) 0%, var(--navy-900) 50%, var(--navy-950) 100%);
   }
+}
 
-  /* Ripple animation pour touch feedback */
+/* ═══════════════════════════════════════════════════════════
+   ANIMATIONS
+   ═══════════════════════════════════════════════════════════ */
+
+@layer utilities {
+  /* Ripple pour touch feedback */
   @keyframes ripple {
     0% {
       width: 0;
       height: 0;
-      opacity: 0.5;
+      opacity: 0.4;
     }
-
     100% {
       width: 300px;
       height: 300px;
@@ -199,73 +341,95 @@ body {
     animation: ripple 0.6s ease-out;
   }
 
-  /* Safe area utilities pour iOS */
-  .safe-top {
-    padding-top: var(--safe-area-inset-top);
+  /* Shimmer pour skeletons premium */
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
   }
 
-  .safe-bottom {
-    padding-bottom: var(--safe-area-inset-bottom);
+  .animate-shimmer {
+    background: linear-gradient(
+      90deg,
+      var(--gray-100) 25%,
+      var(--gray-200) 50%,
+      var(--gray-100) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
   }
 
-  .safe-left {
-    padding-left: var(--safe-area-inset-left);
+  /* Fade-in staggeré pour les cards */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
-  .safe-right {
-    padding-right: var(--safe-area-inset-right);
+  .animate-fade-in-up {
+    animation: fadeInUp 0.4s ease-out both;
   }
 
-  .safe-x {
-    padding-left: var(--safe-area-inset-left);
-    padding-right: var(--safe-area-inset-right);
+  /* Glow pour live badges */
+  @keyframes liveGlow {
+    0%, 100% { box-shadow: 0 0 8px rgba(220, 38, 38, 0.3); }
+    50% { box-shadow: 0 0 16px rgba(220, 38, 38, 0.5); }
   }
 
-  .safe-y {
-    padding-top: var(--safe-area-inset-top);
-    padding-bottom: var(--safe-area-inset-bottom);
+  .animate-live-glow {
+    animation: liveGlow 2s ease-in-out infinite;
   }
 
-  .safe-all {
-    padding-top: var(--safe-area-inset-top);
-    padding-bottom: var(--safe-area-inset-bottom);
-    padding-left: var(--safe-area-inset-left);
-    padding-right: var(--safe-area-inset-right);
+  /* Slide in pour navigation pills */
+  @keyframes slideIn {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
   }
 
-  /* Pour les bottom nav qui doivent s'adapter */
-  .mobile-bottom-nav {
-    padding-bottom: calc(16px + var(--safe-area-inset-bottom));
+  .animate-slide-in {
+    animation: slideIn 0.3s cubic-bezier(0.32, 0.72, 0, 1) both;
   }
 
-  /* Pour les sticky header qui doivent s'adapter */
-  .sticky-header {
-    top: var(--safe-area-inset-top);
+  /* Hover lift pour les cards */
+  .hover-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+  .hover-lift:active {
+    transform: translateY(0) scale(0.98);
+    box-shadow: var(--shadow-sm);
+  }
+}
 
-  /* Hide scrollbar but keep functionality */
+/* ═══════════════════════════════════════════════════════════
+   SCROLLBAR UTILITIES
+   ═══════════════════════════════════════════════════════════ */
+
+@layer utilities {
   .scrollbar-hide {
     -ms-overflow-style: none;
-    /* IE and Edge */
     scrollbar-width: none;
-    /* Firefox */
   }
 
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
-    /* Chrome, Safari and Opera */
   }
 
-  /* Custom thin scrollbar for horizontal lists */
   .scrollbar-thin {
     scrollbar-width: thin;
-    /* Firefox */
-    scrollbar-color: hsl(var(--muted)) transparent;
+    scrollbar-color: var(--gray-300) transparent;
   }
 
   .scrollbar-thin::-webkit-scrollbar {
-    height: 6px;
-    /* Hauteur pour scrollbar horizontal */
+    height: 4px;
+    width: 4px;
   }
 
   .scrollbar-thin::-webkit-scrollbar-track {
@@ -273,12 +437,78 @@ body {
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    background: hsl(var(--muted));
-    border-radius: 3px;
+    background: var(--gray-300);
+    border-radius: 2px;
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--muted-foreground));
+    background: var(--gray-400);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SAFE AREA UTILITIES (iOS)
+   ═══════════════════════════════════════════════════════════ */
+
+@layer utilities {
+  .safe-top { padding-top: var(--safe-area-inset-top); }
+  .safe-bottom { padding-bottom: var(--safe-area-inset-bottom); }
+  .safe-left { padding-left: var(--safe-area-inset-left); }
+  .safe-right { padding-right: var(--safe-area-inset-right); }
+  .safe-x {
+    padding-left: var(--safe-area-inset-left);
+    padding-right: var(--safe-area-inset-right);
+  }
+  .safe-y {
+    padding-top: var(--safe-area-inset-top);
+    padding-bottom: var(--safe-area-inset-bottom);
+  }
+  .safe-all {
+    padding-top: var(--safe-area-inset-top);
+    padding-bottom: var(--safe-area-inset-bottom);
+    padding-left: var(--safe-area-inset-left);
+    padding-right: var(--safe-area-inset-right);
   }
 
+  .mobile-bottom-nav {
+    padding-bottom: calc(12px + var(--safe-area-inset-bottom));
+  }
+
+  .sticky-header {
+    top: var(--safe-area-inset-top);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   COMPONENT UTILITIES
+   ═══════════════════════════════════════════════════════════ */
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Glass effect pour overlays et headers */
+  .glass {
+    background: var(--surface-overlay);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+  }
+
+  /* Segmented bar pour probabilites */
+  .prob-bar {
+    display: flex;
+    border-radius: 6px;
+    overflow: hidden;
+    height: 32px;
+  }
+
+  .prob-bar > * {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    transition: flex-basis 0.3s ease;
+  }
 }

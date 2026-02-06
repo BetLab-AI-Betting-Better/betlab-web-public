@@ -1,19 +1,5 @@
 'use client'
 
-/**
- * MobileHeader - Improved version with modern design
- *
- * Improvements:
- * - Better visual hierarchy
- * - Smooth animations
- * - Modern sport selector with slide animation
- * - Notification badge support
- * - Search integration
- * - Better logo design with gradient
- * - Improved spacing and typography
- * - Enhanced accessibility
- */
-
 import * as React from 'react'
 import { ArrowLeft, Menu, Search, Bell } from 'lucide-react'
 import { cn } from '@/shared/utils'
@@ -63,11 +49,10 @@ export function MobileHeader({
     <header
       className={cn(
         'sticky top-0 z-40',
-        'bg-background/80 backdrop-blur-xl',
-        'border-b border-border/50',
-        'transition-all duration-300 ease-in-out',
-        collapsible && collapsed ? 'h-12 shadow-lg' : 'h-16 shadow-md',
-        // Safe area support for iOS notch
+        'glass',
+        'border-b border-gray-200/40',
+        'transition-all duration-300 ease-out',
+        collapsible && collapsed ? 'h-12' : 'h-14',
         'pt-[env(safe-area-inset-top,0px)]',
         'lg:hidden',
         className
@@ -76,9 +61,9 @@ export function MobileHeader({
     >
       <div
         className={cn(
-          'flex items-center justify-between px-3',
+          'flex items-center justify-between px-4',
           'transition-all duration-300',
-          collapsible && collapsed ? 'h-12' : 'h-16'
+          collapsible && collapsed ? 'h-12' : 'h-14'
         )}
       >
         {/* Left section */}
@@ -86,46 +71,21 @@ export function MobileHeader({
           {showBack ? (
             <Button
               variant="ghost"
-              size="icon"
+              size="icon-sm"
               onClick={onBackClick}
-              className={cn(
-                "shrink-0 hover:bg-[var(--lime)]/10",
-                "transition-all duration-200",
-                "active:scale-95"
-              )}
+              className="shrink-0 hover:bg-gray-100 active:scale-95"
               aria-label="Go back"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
           ) : (
             <div className="flex items-center gap-2 shrink-0">
-              {/* Enhanced Logo */}
-              <div className="relative group">
-                <div className={cn(
-                  "h-9 w-9 rounded-xl flex items-center justify-center",
-                  "bg-gradient-to-br from-[var(--navy)] via-[var(--navy)] to-[var(--lime)]",
-                  "shadow-md transition-all duration-300",
-                  "group-hover:shadow-lg group-hover:scale-105"
-                )}>
-                  <span className="text-white font-black text-base tracking-tight">
-                    BL
-                  </span>
-                </div>
-                {/* Subtle glow effect */}
-                <div className={cn(
-                  "absolute inset-0 rounded-xl",
-                  "bg-gradient-to-br from-[var(--lime)]/20 to-transparent",
-                  "opacity-0 group-hover:opacity-100 transition-opacity duration-300",
-                  "blur-sm -z-10"
-                )} />
+              <div className="h-8 w-8 rounded-lg bg-navy flex items-center justify-center shadow-sm">
+                <span className="text-lime font-black text-xs tracking-tight">BL</span>
               </div>
               {!collapsed && (
-                <span className={cn(
-                  "text-lg font-bold text-foreground",
-                  "bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text",
-                  "animate-in fade-in-0 slide-in-from-left-2 duration-300"
-                )}>
-                  BetLab
+                <span className="text-base font-bold text-foreground tracking-tight">
+                  Bet<span className="text-lime">Lab</span>
                 </span>
               )}
             </div>
@@ -135,54 +95,44 @@ export function MobileHeader({
         {/* Center section */}
         <div className="flex items-center justify-center flex-1 min-w-0">
           {title && !collapsed ? (
-            <h1 className={cn(
-              "text-base font-bold text-foreground truncate px-2",
-              "animate-in fade-in-0 zoom-in-95 duration-300"
-            )}>
+            <h1 className="text-sm font-semibold text-foreground truncate px-2 tracking-tight">
               {title}
             </h1>
           ) : null}
         </div>
 
         {/* Right section */}
-        <div className="flex items-center gap-1 justify-end flex-1">
+        <div className="flex items-center gap-0.5 justify-end flex-1">
           {showSearch && (
             <Button
               variant="ghost"
-              size="icon"
+              size="icon-sm"
               onClick={onSearchClick}
-              className={cn(
-                "shrink-0 hover:bg-[var(--lime)]/10",
-                "transition-all duration-200 active:scale-95"
-              )}
+              className="shrink-0 hover:bg-gray-100 active:scale-95"
               aria-label="Search"
             >
-              <Search className="h-5 w-5" />
+              <Search className="h-[18px] w-[18px] text-gray-500" />
             </Button>
           )}
 
           {showNotifications && (
             <Button
               variant="ghost"
-              size="icon"
+              size="icon-sm"
               onClick={onNotificationClick}
-              className={cn(
-                "shrink-0 relative hover:bg-[var(--lime)]/10",
-                "transition-all duration-200 active:scale-95"
-              )}
+              className="shrink-0 relative hover:bg-gray-100 active:scale-95"
               aria-label={`Notifications${notificationCount > 0 ? ` (${notificationCount})` : ''}`}
             >
-              <Bell className="h-5 w-5" />
+              <Bell className="h-[18px] w-[18px] text-gray-500" />
               {notificationCount > 0 && (
                 <span
                   className={cn(
-                    "absolute -top-1 -right-1",
-                    "flex items-center justify-center",
-                    "min-w-[18px] h-[18px] px-1",
-                    "text-[10px] font-bold text-white",
-                    "bg-red-500 rounded-full",
-                    "animate-in zoom-in-50 duration-200",
-                    "shadow-md"
+                    'absolute -top-0.5 -right-0.5',
+                    'flex items-center justify-center',
+                    'min-w-[16px] h-[16px] px-1',
+                    'text-[9px] font-bold text-white',
+                    'bg-live rounded-full',
+                    'shadow-sm'
                   )}
                 >
                   {notificationCount > 99 ? '99+' : notificationCount}
@@ -194,22 +144,14 @@ export function MobileHeader({
           {showAvatar && (
             <Button
               variant="ghost"
-              size="icon"
+              size="icon-sm"
               onClick={onAvatarClick}
-              className={cn(
-                "shrink-0 rounded-full p-0 h-9 w-9",
-                "hover:ring-2 hover:ring-[var(--lime)]/30",
-                "transition-all duration-200 active:scale-95"
-              )}
+              className="shrink-0 rounded-full p-0 h-8 w-8 hover:ring-2 hover:ring-lime/20 active:scale-95"
               aria-label="User menu"
             >
-              <Avatar className="h-9 w-9 ring-2 ring-border">
+              <Avatar className="h-8 w-8 ring-1 ring-gray-200">
                 <AvatarImage src={avatarSrc} alt="User avatar" />
-                <AvatarFallback className={cn(
-                  "text-xs font-semibold",
-                  "bg-gradient-to-br from-[var(--navy)] to-[var(--lime)]",
-                  "text-white"
-                )}>
+                <AvatarFallback className="text-[10px] font-semibold bg-navy text-lime">
                   {avatarFallback}
                 </AvatarFallback>
               </Avatar>
@@ -219,15 +161,12 @@ export function MobileHeader({
           {showMenu && (
             <Button
               variant="ghost"
-              size="icon"
+              size="icon-sm"
               onClick={onMenuClick}
-              className={cn(
-                "shrink-0 hover:bg-[var(--lime)]/10",
-                "transition-all duration-200 active:scale-95"
-              )}
+              className="shrink-0 hover:bg-gray-100 active:scale-95"
               aria-label="Open menu"
             >
-              <Menu className="h-5 w-5" />
+              <Menu className="h-[18px] w-[18px] text-gray-500" />
             </Button>
           )}
         </div>
