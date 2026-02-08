@@ -82,12 +82,12 @@ export function MatchHeader({ match }: MatchHeaderProps) {
             {isLive && <LiveBadge />}
 
             {isLive && match.score && (
-              <ScoreDisplay homeScore={match.score.home} awayScore={match.score.away} />
+              <ScoreDisplay homeScore={match.score.home ?? 0} awayScore={match.score.away ?? 0} />
             )}
 
             {isFinished && match.score && (
               <>
-                <ScoreDisplay homeScore={match.score.home} awayScore={match.score.away} />
+                <ScoreDisplay homeScore={match.score.home ?? 0} awayScore={match.score.away ?? 0} />
                 <span className="text-[10px] font-medium text-white/40 uppercase tracking-wider">
                   Terminé
                 </span>

@@ -36,6 +36,14 @@ function buildNarration(match: MatchDetail, prediction?: PredictionData): string
   return `Le modele fournit des probabilites pour le marche "${prediction.type}".`
 }
 
+
+function formatLabel(label: string, match: MatchDetail): string {
+  if (label === "first_to_score.home") return `Premier but : ${match.homeTeam.name}`
+  if (label === "first_to_score.away") return `Premier but : ${match.awayTeam.name}`
+  // Fallback cleanup
+  return label.replace(/_/g, " ")
+}
+
 export function ModelNarration({ match, prediction, predictions }: ModelNarrationProps) {
   const narration = buildNarration(match, prediction)
   const opportunities =
@@ -57,7 +65,7 @@ export function ModelNarration({ match, prediction, predictions }: ModelNarratio
                 key={`${o.type}-${o.label}`}
                 className="rounded-full bg-white/80 px-2 py-0.5 text-[11px] text-[var(--navy)]"
               >
-                {o.label} · {formatPercent(o.prob)}
+                {formatLabel(o.label, match)} · {formatPercent(o.prob)}
               </span>
             ))}
           </div>

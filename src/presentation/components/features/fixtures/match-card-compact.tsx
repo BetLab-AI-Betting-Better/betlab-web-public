@@ -503,7 +503,7 @@ const MatchCardCompact = React.forwardRef<HTMLDivElement, MatchCardCompactProps>
           <div className="flex flex-col items-center shrink-0 min-w-[48px]">
             {(match.status === "live" || match.status === "finished") && match.score ? (
               <span className="text-xl font-bold text-navy tabular-nums tracking-tight">
-                {match.score.home} - {match.score.away}
+                {match.score.home ?? 0} - {match.score.away ?? 0}
               </span>
             ) : (
               <span className="text-xs text-text-tertiary font-medium">vs</span>
