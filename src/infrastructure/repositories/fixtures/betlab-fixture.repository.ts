@@ -35,6 +35,24 @@ interface ApiFixtureResponse {
     home: number | null;
     away: number | null;
   };
+  score?: {
+    halftime?: {
+      home: number | null;
+      away: number | null;
+    };
+    fulltime?: {
+      home: number | null;
+      away: number | null;
+    };
+    extratime?: {
+      home: number | null;
+      away: number | null;
+    };
+    penalty?: {
+      home: number | null;
+      away: number | null;
+    };
+  };
 }
 
 function transformFixture(item: ApiFixtureResponse): Match {
@@ -71,9 +89,15 @@ function transformFixture(item: ApiFixtureResponse): Match {
     status: mappedStatus,
     score: item.goals
       ? {
-          home: item.goals.home ?? 0,
-          away: item.goals.away ?? 0,
-        }
+        home: item.goals.home ?? 0,
+        away: item.goals.away ?? 0,
+        halftime: item.score?.halftime && item.score.halftime.home !== null && item.score.halftime.away !== null
+          ? {
+            home: item.score.halftime.home,
+            away: item.score.halftime.away,
+          }
+          : undefined,
+      }
       : undefined,
   };
 }

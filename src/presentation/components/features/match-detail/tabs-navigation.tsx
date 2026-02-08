@@ -2,7 +2,7 @@
 
 import { cn } from "@/shared/utils"
 
-export type TabId = "predictions" | "analysis" | "value" | "h2h"
+export type TabId = "predictions" | "stats" | "lineups" | "analysis" | "value" | "h2h"
 
 interface Tab {
   id: TabId
@@ -16,6 +16,8 @@ interface TabsNavigationProps {
 
 const tabs: Tab[] = [
   { id: "predictions", label: "Prédictions" },
+  { id: "stats", label: "Stats" },
+  { id: "lineups", label: "Compos" },
   { id: "analysis", label: "Analyse" },
   { id: "value", label: "Value Bets" },
   { id: "h2h", label: "H2H" },

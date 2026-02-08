@@ -31,6 +31,10 @@ export interface Match {
   score?: {
     home: number;
     away: number;
+    halftime?: {
+      home: number;
+      away: number;
+    };
   };
 }
 
@@ -74,6 +78,10 @@ export interface MatchWithPrediction {
   score?: {
     home: number;
     away: number;
+    halftime?: {
+      home: number;
+      away: number;
+    };
   };
   prediction?: PredictionData;
   isFavorite?: boolean;

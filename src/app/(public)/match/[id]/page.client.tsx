@@ -13,6 +13,9 @@ import {
   PredictionsTab,
   AnalysisTab,
   ValueBetsTab,
+  StatsTab,
+  LineupsTab,
+  H2HTab,
   type TabId,
 } from "@/presentation/components/features/match-detail";
 import type { MatchDetail } from "@/core/entities/match-detail/match-detail.entity";
@@ -49,15 +52,16 @@ export function MatchDetailClient({ match }: MatchDetailClientProps) {
           <ValueBetsTab match={match} predictions={match.predictions} />
         )}
 
+        {activeTab === "stats" && (
+          <StatsTab match={match} />
+        )}
+
+        {activeTab === "lineups" && (
+          <LineupsTab match={match} />
+        )}
+
         {activeTab === "h2h" && (
-          <div className="p-4">
-            <div className="bg-card border rounded-lg p-6">
-              <h3 className="text-lg font-semibold mb-4">Historique (H2H)</h3>
-              <p className="text-muted-foreground">
-                L&apos;historique des confrontations sera bientôt disponible
-              </p>
-            </div>
-          </div>
+          <H2HTab match={match} />
         )}
       </div>
     </div>

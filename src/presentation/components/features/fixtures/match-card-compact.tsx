@@ -320,7 +320,11 @@ function ProbabilityBar({
             className={cn(
               "flex-1 flex items-center justify-center py-1.5 rounded-md transition-all duration-300",
               isMax
-                ? "bg-lime text-navy-950 font-bold"
+                ? (validationResult?.matchResultOutcome === "correct" || validationResult?.matchResultOutcome === "half-win"
+                  ? "bg-success text-white font-bold"
+                  : validationResult?.matchResultOutcome === "incorrect" || validationResult?.matchResultOutcome === "half-loss"
+                    ? "bg-error text-white font-bold"
+                    : "bg-lime text-navy-950 font-bold")
                 : "bg-gray-100 text-gray-500",
               showBadge && "relative"
             )}

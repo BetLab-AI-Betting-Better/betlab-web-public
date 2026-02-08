@@ -21,6 +21,8 @@ const confidenceVariants = {
  * Affiche les probabilités pour Home Win, Draw, Away Win
  */
 export function MatchResultCard({ prediction, match }: MatchResultCardProps) {
+  if (!prediction) return null;
+
   const { homeWin, draw, awayWin, confidence, reasoning, xG } = prediction
   const confidenceConfig = confidenceVariants[confidence]
 

@@ -90,7 +90,7 @@ const MatchList = React.forwardRef<HTMLDivElement, MatchListProps>(
                 </div>
 
                 {/* Match grid */}
-                <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,340px))] gap-3">
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-3">
                   {subSlot.matches.map((match) => (
                     <MatchCardCompact
                       key={match.id}

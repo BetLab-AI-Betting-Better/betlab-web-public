@@ -136,18 +136,19 @@ export function HomeFixturesClient({ initialMatches }: HomeFixturesClientProps) 
 
       const result = validatePrediction(match.prediction, match.score, match.status);
 
+      // Count void as correct/win as requested
       if (result.matchResultOutcome !== null) {
         total1x2++;
-        if (result.matchResultOutcome === "correct") correct1x2++;
+        if (result.matchResultOutcome === "correct" || result.matchResultOutcome === "half-win" || result.matchResultOutcome === "void") correct1x2++;
       }
 
       // Best market prono — mirrors getBestMarket() logic
       const rawLabel = extractRawBestMarketLabel(match.prediction);
       if (rawLabel) {
-        const outcome = validateBestMarket(rawLabel, match.score);
+        const outcome = validateBestMarket(rawLabel, match.score, match.status);
         if (outcome !== null) {
           totalProno++;
-          if (outcome === "correct") correctProno++;
+          if (outcome === "correct" || outcome === "half-win" || outcome === "void") correctProno++;
         }
       }
     }

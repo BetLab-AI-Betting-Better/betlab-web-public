@@ -95,6 +95,9 @@ export class BetlabMatchDetailRepository implements IMatchDetailRepository {
       this.attachPredictions(detail, id),
       this.attachProbabilities(detail, id),
       this.attachHtFtProbabilities(detail, id),
+      this.attachStatistics(detail, id),
+      this.attachLineups(detail, id),
+      this.attachH2H(detail, id, detail.homeTeam.id, detail.awayTeam.id),
     ]);
 
     return detail;
@@ -148,6 +151,83 @@ export class BetlabMatchDetailRepository implements IMatchDetailRepository {
       }
     } catch (error) {
       console.warn(`Failed to fetch HT-FT probabilities for match ${fixtureId}:`, error);
+    }
+  }
+
+  private async attachStatistics(detail: MatchDetail, fixtureId: number) {
+    try {
+      // Fetch stats for the whole match
+      const stats = await betlabFetch<any[]>(`/api/fixtures/${fixtureId}/statistics`);
+
+      // The API returns an array of 2 objects (one per team) containing an array of stats
+      // Standardize into FixtureStatistic[]
+      // We expect: [{ team: { id: ... }, statistics: [{ type: "Shots on Goal", value: 5 }, ...] }, ...]
+
+      if (!Array.isArray(stats) || stats.length < 2) return;
+
+      const homeStats = stats.find(s => s.team.id === detail.homeTeam.id)?.statistics || [];
+      const awayStats = stats.find(s => s.team.id === detail.awayTeam.id)?.statistics || [];
+
+      // Merge into a single list comparisons
+      const unifiedStats: any[] = [];
+      const statTypes = new Set([...homeStats.map((s: any) => s.type), ...awayStats.map((s: any) => s.type)]);
+
+      statTypes.forEach(type => {
+        const homeValue = homeStats.find((s: any) => s.type === type)?.value ?? 0;
+        const awayValue = awayStats.find((s: any) => s.type === type)?.value ?? 0;
+        unifiedStats.push({
+          type,
+          value: {
+            home: homeValue,
+            away: awayValue
+          }
+        });
+      });
+
+      detail.statistics = unifiedStats;
+
+    } catch (error) {
+      console.warn(`Failed to fetch statistics for match ${fixtureId}:`, error);
+    }
+  }
+
+  private async attachLineups(detail: MatchDetail, fixtureId: number) {
+    try {
+      const lineups = await betlabFetch<any[]>(`/api/fixtures/${fixtureId}/lineups`);
+      if (Array.isArray(lineups) && lineups.length > 0) {
+        detail.lineups = lineups;
+      }
+    } catch (error) {
+      console.warn(`Failed to fetch lineups for match ${fixtureId}:`, error);
+    }
+  }
+
+  private async attachH2H(detail: MatchDetail, fixtureId: number, homeId: number, awayId: number) {
+    try {
+      // H2H requires team IDs joined by '-'
+      if (!homeId || !awayId) return;
+
+      const h2h = await betlabFetch<any[]>(`/api/fixtures/headtohead`, {
+        searchParams: { h2h: `${homeId}-${awayId}`, last: "10" } // Limit to last 10
+      });
+
+      if (Array.isArray(h2h) && h2h.length > 0) {
+        // Transform basic fixture data to match MatchDetail structure if needed, 
+        // or just use what we get if it adheres to Match interface roughly.
+        // The API returns full fixture objects usually.
+        detail.h2h = h2h.map((item: any) => ({
+          id: item.fixture.id.toString(),
+          fixtureId: item.fixture.id,
+          homeTeam: item.teams.home,
+          awayTeam: item.teams.away,
+          league: item.league,
+          kickoffTime: new Date(item.fixture.date),
+          status: ["FT", "AET", "PEN"].includes(item.fixture.status.short) ? "finished" : "scheduled", // simplified
+          score: item.goals
+        }));
+      }
+    } catch (error) {
+      console.warn(`Failed to fetch H2H for match ${fixtureId}:`, error);
     }
   }
 }

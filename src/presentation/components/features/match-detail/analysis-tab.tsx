@@ -39,6 +39,9 @@ export function AnalysisTab({ match, prediction }: AnalysisTabProps) {
 
   return (
     <div className="p-4 space-y-8 max-w-4xl mx-auto">
+      {/* 0. Model Narration (New) */}
+      <ModelNarration match={match} prediction={prediction} predictions={match.predictions} />
+
       {/* 1. Opportunities & Golden Picks */}
       <OpportunitiesList opportunities={analytics.opportunities || []} />
 
