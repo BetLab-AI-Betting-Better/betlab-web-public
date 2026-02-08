@@ -13,6 +13,7 @@ interface ApiFixtureResponse {
   id: number;
   date: string;
   status: string;
+  elapsed?: number;
   venue?: string;
   home_team: {
     id: number;
@@ -74,6 +75,7 @@ function transformMatchDetail(response: ApiFixtureResponse): MatchDetail {
       }
       : undefined,
     venue: response.venue,
+    elapsed: response.elapsed,
   };
 }
 

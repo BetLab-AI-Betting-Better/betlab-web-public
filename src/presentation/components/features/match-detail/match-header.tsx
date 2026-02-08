@@ -79,7 +79,7 @@ export function MatchHeader({ match }: MatchHeaderProps) {
 
           {/* Center */}
           <div className="flex flex-col items-center justify-center gap-1.5 min-w-[90px]">
-            {isLive && <LiveBadge />}
+            {isLive && <LiveBadge elapsed={match.elapsed} />}
 
             {isLive && match.score && (
               <ScoreDisplay homeScore={match.score.home ?? 0} awayScore={match.score.away ?? 0} />
@@ -128,12 +128,12 @@ export function MatchHeader({ match }: MatchHeaderProps) {
   )
 }
 
-function LiveBadge() {
+function LiveBadge({ elapsed }: { elapsed?: number }) {
   return (
     <div className="flex items-center gap-1.5 px-3 py-1 bg-live rounded-full animate-live-glow">
       <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
       <span className="text-[10px] font-bold text-white uppercase tracking-wider">
-        Live
+        Live {elapsed ? `• ${elapsed}'` : ""}
       </span>
     </div>
   )

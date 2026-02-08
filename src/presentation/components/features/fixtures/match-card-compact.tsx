@@ -459,7 +459,7 @@ const MatchCardCompact = React.forwardRef<HTMLDivElement, MatchCardCompactProps>
           {match.status === "live" && (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-live text-white text-[10px] font-bold animate-live-glow shrink-0">
               <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-              EN DIRECT
+              EN DIRECT {match.elapsed ? `• ${match.elapsed}'` : ""}
             </span>
           )}
 

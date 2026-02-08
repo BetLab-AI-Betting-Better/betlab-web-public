@@ -11,6 +11,7 @@ interface ApiFixtureResponse {
     date: string;
     status?: {
       short: string;
+      elapsed?: number;
     };
   };
   teams?: {
@@ -99,6 +100,7 @@ function transformFixture(item: ApiFixtureResponse): Match {
           : undefined,
       }
       : undefined,
+    elapsed: item.fixture?.status?.elapsed,
   };
 }
 

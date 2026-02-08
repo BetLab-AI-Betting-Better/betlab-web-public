@@ -36,6 +36,7 @@ export interface Match {
       away: number;
     };
   };
+  elapsed?: number;
 }
 
 /**
@@ -83,6 +84,7 @@ export interface MatchWithPrediction {
       away: number;
     };
   };
+  elapsed?: number;
   prediction?: PredictionData;
   isFavorite?: boolean;
 }
