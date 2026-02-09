@@ -509,6 +509,11 @@ const MatchCardCompact = React.forwardRef<HTMLDivElement, MatchCardCompactProps>
             ) : (
               <span className="text-xs text-text-tertiary font-medium">vs</span>
             )}
+            {match.score?.halftime && (match.status === "live" || match.status === "finished") && (
+              <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-gray-100 text-[10px] font-semibold text-gray-600 px-1.5 py-0.5 tabular-nums">
+                MT {match.score.halftime.home} - {match.score.halftime.away}
+              </span>
+            )}
           </div>
 
           {/* Away Team */}
