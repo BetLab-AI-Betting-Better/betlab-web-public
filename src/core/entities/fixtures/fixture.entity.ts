@@ -25,6 +25,7 @@ export interface Match {
     name: string;
     logo: string;
     country: string;
+    season?: number;
   };
   kickoffTime: Date;
   status: "scheduled" | "live" | "finished";

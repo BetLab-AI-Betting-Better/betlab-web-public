@@ -1,7 +1,7 @@
 import "server-only";
 
 import { cache } from "react";
-import type { MatchDetail } from "@/core/entities/match-detail/match-detail.entity";
+import type { MatchDetail, PlayerStats } from "@/core/entities/match-detail/match-detail.entity";
 import type { PredictionData, PredictionType } from "@/core/entities/predictions/prediction.entity";
 import type { IMatchDetailRepository } from "@/core/repositories/match-detail.repository";
 import type { IPredictionRepository } from "@/core/repositories/prediction.repository";
@@ -65,6 +65,7 @@ function transformMatchDetail(response: ApiFixtureResponse): MatchDetail {
       name: response.league.name,
       logo: response.league.logo ?? "",
       country: response.league.country ?? "",
+      season: response.league.season,
     },
     kickoffTime: new Date(response.date),
     status: mappedStatus,
@@ -99,6 +100,7 @@ export class BetlabMatchDetailRepository implements IMatchDetailRepository {
       this.attachHtFtProbabilities(detail, id),
       this.attachStatistics(detail, id),
       this.attachLineups(detail, id),
+      this.attachPlayersStats(detail),
       this.attachH2H(detail, id, detail.homeTeam.id, detail.awayTeam.id),
     ]);
 
@@ -230,6 +232,47 @@ export class BetlabMatchDetailRepository implements IMatchDetailRepository {
       }
     } catch (error) {
       console.warn(`Failed to fetch H2H for match ${fixtureId}:`, error);
+    }
+  }
+
+  private async attachPlayersStats(detail: MatchDetail) {
+    if (!detail.league.season || !detail.league.id) return;
+
+    try {
+      const stats: Record<number, PlayerStats> = {};
+
+      const fetchTeamStats = async (teamId: number) => {
+        try {
+          // The backend endpoint is /api/football/players?team=X&league=Y&season=Z
+          const data = await betlabFetch<any>(`/api/football/players`, {
+            searchParams: {
+              team: teamId,
+              league: detail.league.id,
+              season: detail.league.season!
+            }
+          });
+
+          if (data && Array.isArray(data.players)) {
+            data.players.forEach((p: PlayerStats) => {
+              stats[p.id] = p;
+            });
+          }
+        } catch (e) {
+          console.warn(`Failed stats for team ${teamId}`, e);
+        }
+      };
+
+      await Promise.all([
+        fetchTeamStats(detail.homeTeam.id),
+        fetchTeamStats(detail.awayTeam.id)
+      ]);
+
+      if (Object.keys(stats).length > 0) {
+        detail.playersStats = stats;
+      }
+
+    } catch (error) {
+      console.warn(`Failed to fetch players stats for match ${detail.id}:`, error);
     }
   }
 }

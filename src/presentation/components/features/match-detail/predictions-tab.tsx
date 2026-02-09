@@ -6,95 +6,82 @@ import type { MatchDetail } from "@/core/entities/match-detail/match-detail.enti
 import type { PredictionData, MatchResultPrediction } from "@/core/entities/predictions/prediction.entity"
 import { MatchResultCard, OverUnderCard, BTTSCard, CorrectScoreCard, HtFtCard } from "./prediction-cards"
 import { ModelNarration } from "./model-narration"
+import { Grid, Layers, LayoutGrid, Target, Clock } from "lucide-react"
 
 interface PredictionsTabProps {
   match: MatchDetail
   predictions?: PredictionData[]
 }
 
-type PredictionType =
+type MarketType =
   | "match_result"
   | "both_teams_score"
   | "over_under"
   | "correct_score"
   | "ht_ft"
 
-interface PredictionTypeInfo {
-  id: PredictionType
+interface MarketCategory {
+  id: MarketType
   label: string
-  shortLabel: string
+  icon: React.ReactNode
 }
 
-const predictionTypes: PredictionTypeInfo[] = [
-  { id: "match_result", label: "Résultat du match", shortLabel: "1X2" },
-  { id: "both_teams_score", label: "Les 2 équipes marquent", shortLabel: "BTTS" },
-  { id: "over_under", label: "Plus/Moins de buts", shortLabel: "O/U" },
-  { id: "correct_score", label: "Score exact", shortLabel: "Score" },
-  { id: "ht_ft", label: "Mi-temps / Temps plein", shortLabel: "HT/FT" },
+const marketCategories: MarketCategory[] = [
+  { id: "match_result", label: "Résultat (1N2)", icon: <Grid size={16} /> },
+  { id: "over_under", label: "Total Buts", icon: <Layers size={16} /> },
+  { id: "both_teams_score", label: "Les 2 Marquent", icon: <Target size={16} /> },
+  { id: "correct_score", label: "Score Exact", icon: <LayoutGrid size={16} /> },
+  { id: "ht_ft", label: "Mi-temps / Fin", icon: <Clock size={16} /> },
 ]
 
-/**
- * Onglet Prédictions
- * Affiche un sélecteur de type de prédiction et la card correspondante
- */
 export function PredictionsTab({ match, predictions }: PredictionsTabProps) {
-  const [selectedType, setSelectedType] = useState<PredictionType>("match_result")
+  const [selectedType, setSelectedType] = useState<MarketType>("match_result")
 
   const prediction = predictions?.find(p => p.type === selectedType)
   const hasProbabilities = !!match.probabilities
 
   const renderNoData = (message: string) => (
-    <div className="bg-card border rounded-lg p-6">
-      <div className="text-center space-y-4 py-8">
-        <h3 className="text-lg font-semibold">Aucune prédiction disponible</h3>
-        <p className="text-sm text-muted-foreground">{message}</p>
-      </div>
+    <div className="bg-card border rounded-2xl p-8 text-center">
+       <div className="bg-muted w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
+         <Layers className="text-muted-foreground w-6 h-6" />
+       </div>
+       <h3 className="text-lg font-bold text-foreground mb-2">Données indisponibles</h3>
+       <p className="text-sm text-muted-foreground max-w-xs mx-auto">{message}</p>
     </div>
   )
 
   return (
-    <div className="space-y-6 p-4">
-      {/* Type Selector - Horizontal scrollable tabs */}
-      <div className="relative -mx-4 px-4 overflow-x-auto scrollbar-hide">
-        <div className="flex gap-2 pb-2">
-          {predictionTypes.map((type) => {
-            const isActive = selectedType === type.id
-
-            return (
-              <button
-                key={type.id}
-                onClick={() => setSelectedType(type.id)}
-                className={cn(
-                  // Layout & sizing
-                  "flex-shrink-0 px-4 py-2 rounded-lg",
-                  "min-h-[44px] flex items-center justify-center",
-                  // Typography
-                  "text-sm font-medium whitespace-nowrap",
-                  // Transitions
-                  "transition-all duration-200",
-                  // Active state
-                  isActive
-                    ? "bg-[var(--navy)] text-white shadow-md scale-105"
-                    : "bg-gray-100 text-muted-foreground hover:bg-gray-200 cursor-pointer"
-                )}
-              >
-                {type.shortLabel}
-              </button>
-            )
-          })}
-        </div>
+    <div className="space-y-6 p-4 max-w-4xl mx-auto animation-fade-in">
+      
+      {/* 1. Market Category Selector */}
+      <div className="flex flax-wrap gap-2 overflow-x-auto pb-2 scrollbar-hide">
+        {marketCategories.map((type) => {
+          const isActive = selectedType === type.id
+          return (
+            <button
+              key={type.id}
+              onClick={() => setSelectedType(type.id)}
+              className={cn(
+                "flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm transition-all whitespace-nowrap",
+                isActive 
+                  ? "bg-[var(--navy)] text-white shadow-md transform scale-105" 
+                  : "bg-card border text-muted-foreground hover:bg-muted"
+              )}
+            >
+              {type.icon}
+              {type.label}
+            </button>
+          )
+        })}
       </div>
 
-      {/* Prediction Content */}
-      <div>
-        {/* HT-FT predictions are fetched via dedicated endpoint */}
+      {/* 2. Main Market Content */}
+      <div className="min-h-[300px]">
         {selectedType === "ht_ft" ? (
           match.htFtProbabilities ? (
             <HtFtCard match={match} data={match.htFtProbabilities} />
           ) : (
-            renderNoData(
-              "Les probabilités Mi-temps / Temps plein ne sont pas encore disponibles pour ce match."
-            )
+            renderNoData("Les probabilités Mi-temps / Fin de match ne sont pas disponibles.")
           )
         ) : hasProbabilities ? (
           <>
@@ -108,13 +95,10 @@ export function PredictionsTab({ match, predictions }: PredictionsTabProps) {
         ) : prediction && selectedType === "match_result" ? (
           <MatchResultCard prediction={prediction as MatchResultPrediction} match={match} />
         ) : (
-          renderNoData(
-            "Les probabilités pour ce match ne sont pas encore disponibles. Cela peut arriver pour certaines compétitions ou des rencontres très anciennes."
-          )
+          renderNoData("Probabilités non disponibles pour ce marché.")
         )}
       </div>
 
-      <ModelNarration match={match} prediction={prediction} predictions={predictions} />
     </div>
   )
 }

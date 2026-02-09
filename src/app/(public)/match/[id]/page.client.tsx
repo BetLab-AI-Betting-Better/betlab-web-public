@@ -10,6 +10,7 @@ import { useState } from "react";
 import {
   MatchHeader,
   TabsNavigation,
+  OverviewTab,
   PredictionsTab,
   AnalysisTab,
   ValueBetsTab,
@@ -25,7 +26,7 @@ interface MatchDetailClientProps {
 }
 
 export function MatchDetailClient({ match }: MatchDetailClientProps) {
-  const [activeTab, setActiveTab] = useState<TabId>("predictions");
+  const [activeTab, setActiveTab] = useState<TabId>("overview");
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -37,6 +38,10 @@ export function MatchDetailClient({ match }: MatchDetailClientProps) {
 
       {/* Tab Content */}
       <div className="container mx-auto">
+        {activeTab === "overview" && (
+          <OverviewTab match={match} />
+        )}
+
         {activeTab === "predictions" && (
           <PredictionsTab match={match} predictions={match.predictions} />
         )}

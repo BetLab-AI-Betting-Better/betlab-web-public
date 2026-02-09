@@ -66,6 +66,30 @@ export interface HeadToHead extends Match {
   // Inherits standard match properties
 }
 
+export interface PlayerStats {
+  id: number;
+  name: string;
+  minutes: number;
+  goals: number;
+  assists: number;
+  xg: number;
+  xa: number;
+  rating: number | null;
+  // Enriched stats
+  tackles: number;
+  duels_total: number;
+  duels_won: number;
+  dribbles_attempts: number;
+  dribbles_success: number;
+  fouls_drawn: number;
+  fouls_committed: number;
+  yellow: number;
+  red: number;
+  passes_total: number;
+  passes_accuracy: number;
+  saves: number;
+}
+
 export interface MatchDetail extends Match {
   venue?: string;
   referee?: string;
@@ -78,4 +102,5 @@ export interface MatchDetail extends Match {
   lineups?: FixtureLineup[];
   events?: FixtureEvent[];
   h2h?: HeadToHead[];
+  playersStats?: Record<number, PlayerStats>; // Map playerId -> stats
 }
