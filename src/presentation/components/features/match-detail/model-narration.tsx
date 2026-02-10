@@ -15,8 +15,8 @@ function formatPercent(value?: number) {
 }
 
 function buildNarration(match: MatchDetail, prediction?: PredictionData): string {
-  if (!prediction) {
-    return "Donnees de modele indisponibles pour ce match."
+  if (!prediction && !match.probabilities) {
+    return "Donn?es de mod?le indisponibles pour ce match."
   }
 
   if (prediction.type === "match_result") {
@@ -33,7 +33,17 @@ function buildNarration(match: MatchDetail, prediction?: PredictionData): string
     return `Projection ${bestLabel} (${formatPercent(best)}). xG attendus: ${xgHome.toFixed(2)}-${xgAway.toFixed(2)}.${reasoning}`
   }
 
-  return `Le modele fournit des probabilites pour le marche "${prediction.type}".`
+  if (!prediction && match.probabilities) {
+    const p = match.probabilities
+    const m = p.markets?.["1x2"]
+    if (m) {
+      const best = Math.max(m.home, m.draw, m.away)
+      const bestLabel = best === m.home ? "V1" : best === m.draw ? "Nul" : "V2"
+      return `Projection ${bestLabel} (${formatPercent(best)}). xG attendus: ${p.inputs.mu_home.toFixed(2)}-${p.inputs.mu_away.toFixed(2)}.`
+    }
+  }
+
+  return `Le mod?le fournit des probabilit?s pour le march? "${prediction?.type ?? "inconnu"}".`
 }
 
 

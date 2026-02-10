@@ -12,8 +12,23 @@ interface OverviewTabProps {
 
 export function OverviewTab({ match }: OverviewTabProps) {
     const [accuracy, setAccuracy] = useState<{ accuracy: number } | null>(null);
+    const probabilities = match.probabilities
     const mainPrediction = match.predictions?.find(p => p.type === "match_result") as MatchResultPrediction | undefined
     const analytics = mainPrediction?.analytics
+    const reasoning = mainPrediction?.reasoning ?? ""
+    const headline = reasoning.split(".")[0] || "Analyse en cours..."
+
+    const markets1x2 = probabilities?.markets?.["1x2"]
+    const homeProb = markets1x2?.home ?? mainPrediction?.homeWin?.probability ?? 0
+    const drawProb = markets1x2?.draw ?? mainPrediction?.draw?.probability ?? 0
+    const awayProb = markets1x2?.away ?? mainPrediction?.awayWin?.probability ?? 0
+    const maxProb = Math.max(homeProb, drawProb, awayProb)
+    const confidence =
+        maxProb >= 0.6 ? "high" : maxProb >= 0.45 ? "medium" : "low"
+
+    const inputs = probabilities?.inputs
+    const formIndexHome = inputs?.form_index_home
+    const formIndexAway = inputs?.form_index_away
 
     useEffect(() => {
         const fetchAccuracy = async () => {
@@ -33,15 +48,15 @@ export function OverviewTab({ match }: OverviewTabProps) {
     }, []);
 
     // Determine main confidence color
-    const confidenceColor = mainPrediction?.confidence === "high"
+    const confidenceColor = confidence === "high"
         ? "text-green-500"
-        : mainPrediction?.confidence === "medium"
+        : confidence === "medium"
             ? "text-yellow-500"
             : "text-red-500"
 
-    const confidenceBg = mainPrediction?.confidence === "high"
+    const confidenceBg = confidence === "high"
         ? "bg-green-500/10 border-green-500/20"
-        : mainPrediction?.confidence === "medium"
+        : confidence === "medium"
             ? "bg-yellow-500/10 border-yellow-500/20"
             : "bg-red-500/10 border-red-500/20"
 
@@ -49,7 +64,7 @@ export function OverviewTab({ match }: OverviewTabProps) {
         <div className="space-y-6 p-4 max-w-4xl mx-auto animation-fade-in">
 
             {/* 1. Hero: Main Prediction Insight */}
-            {mainPrediction && (
+            {(mainPrediction || probabilities) && (
                 <div className={cn("relative overflow-hidden rounded-2xl border p-6", confidenceBg)}>
                     <div className="flex flex-col md:flex-row items-center justify-between gap-6">
 
@@ -57,7 +72,7 @@ export function OverviewTab({ match }: OverviewTabProps) {
                         <div className="flex-1 space-y-4 text-center md:text-left">
                             <div className="flex items-center justify-center md:justify-start gap-2">
                                 <span className={cn("px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border", confidenceBg, confidenceColor)}>
-                                    Confiance {mainPrediction.confidence === "high" ? "Élevée" : mainPrediction.confidence === "medium" ? "Moyenne" : "Faible"}
+                                    Confiance {confidence === "high" ? "Élevée" : confidence === "medium" ? "Moyenne" : "Faible"}
                                 </span>
                                 <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
                                     Moteur IA v2.1
@@ -74,10 +89,10 @@ export function OverviewTab({ match }: OverviewTabProps) {
 
                             <div>
                                 <h2 className="text-3xl md:text-4xl font-black tracking-tight text-foreground">
-                                    {mainPrediction.reasoning.split('.')[0] || "Analyse en cours..."}
+                                    {headline}
                                 </h2>
                                 <p className="mt-2 text-muted-foreground text-sm md:text-base max-w-xl">
-                                    {mainPrediction.reasoning}
+                                    {reasoning || (probabilities ? `Basé sur le modèle ${probabilities.model_version}.` : "Analyse en cours...")}
                                 </p>
                             </div>
 
@@ -85,30 +100,30 @@ export function OverviewTab({ match }: OverviewTabProps) {
                             <div className="w-full bg-background/50 h-3 rounded-full overflow-hidden flex shadow-inner">
                                 <div
                                     className="bg-[var(--navy)] h-full transition-all duration-1000"
-                                    style={{ width: `${mainPrediction.homeWin.probability * 100}%` }}
+                                    style={{ width: `${homeProb * 100}%` }}
                                 />
                                 <div
                                     className="bg-gray-300 h-full transition-all duration-1000"
-                                    style={{ width: `${mainPrediction.draw.probability * 100}%` }}
+                                    style={{ width: `${drawProb * 100}%` }}
                                 />
                                 <div
                                     className="bg-[var(--cyan)] h-full transition-all duration-1000"
-                                    style={{ width: `${mainPrediction.awayWin.probability * 100}%` }}
+                                    style={{ width: `${awayProb * 100}%` }}
                                 />
                             </div>
                             <div className="flex justify-between text-xs font-bold text-muted-foreground px-1">
-                                <span>{match.homeTeam.name} {(mainPrediction.homeWin.probability * 100).toFixed(0)}%</span>
-                                <span>Nul {(mainPrediction.draw.probability * 100).toFixed(0)}%</span>
-                                <span>{match.awayTeam.name} {(mainPrediction.awayWin.probability * 100).toFixed(0)}%</span>
+                                <span>{match.homeTeam.name} {(homeProb * 100).toFixed(0)}%</span>
+                                <span>Nul {(drawProb * 100).toFixed(0)}%</span>
+                                <span>{match.awayTeam.name} {(awayProb * 100).toFixed(0)}%</span>
                             </div>
                         </div>
 
                         {/* Right: Key Stats Circle or Metric */}
-                        {analytics?.formIndex && (
+                        {(formIndexHome !== undefined && formIndexAway !== undefined) && (
                             <div className="flex flex-col items-center gap-2 p-4 bg-background/60 rounded-xl backdrop-blur-sm border shadow-sm">
                                 <Activity className="w-6 h-6 text-primary" />
                                 <div className="text-2xl font-bold">
-                                    {Math.abs(analytics.formIndex.home - analytics.formIndex.away).toFixed(2)}
+                                    {Math.abs(formIndexHome - formIndexAway).toFixed(2)}
                                 </div>
                                 <div className="text-[10px] uppercase font-bold text-muted-foreground">Delta Forme</div>
                             </div>

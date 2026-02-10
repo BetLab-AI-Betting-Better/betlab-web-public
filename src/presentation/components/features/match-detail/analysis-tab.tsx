@@ -25,7 +25,11 @@ interface AnalysisTabProps {
 }
 
 export function AnalysisTab({ match, prediction }: AnalysisTabProps) {
-  if (!prediction?.analytics) {
+  const probabilities = match.probabilities
+  const inputs = probabilities?.inputs
+  const analytics = prediction?.analytics
+
+  if (!inputs && !analytics) {
     return (
       <div className="p-4">
         <div className="bg-card border rounded-lg p-6">
@@ -38,44 +42,54 @@ export function AnalysisTab({ match, prediction }: AnalysisTabProps) {
     )
   }
 
-  const { analytics } = prediction
+  const xgHome = Number.isFinite(inputs?.mu_home) ? inputs!.mu_home : (Number.isFinite(prediction?.xG?.home) ? prediction!.xG.home : 0)
+  const xgAway = Number.isFinite(inputs?.mu_away) ? inputs!.mu_away : (Number.isFinite(prediction?.xG?.away) ? prediction!.xG.away : 0)
+  const formHome = inputs?.form_index_home
+  const formAway = inputs?.form_index_away
+  const defenseHome = inputs?.defense_factor_home
+  const defenseAway = inputs?.defense_factor_away
+  const injuryHome = inputs?.injury_factor_home
+  const injuryAway = inputs?.injury_factor_away
+  const restHome = inputs?.rest_hours_home
+  const restAway = inputs?.rest_hours_away
+  const ratingHome = inputs?.rating_home
+  const ratingAway = inputs?.rating_away
 
-  // Prepare Radar Data
   const radarData = [
     {
       subject: 'Attaque (xG)',
-      A: prediction.xG.home * 20, // Scale xG approx to 0-100 (assuming 5 goals max)
-      B: prediction.xG.away * 20,
+      A: xgHome * 20, // Scale xG approx to 0-100 (assuming 5 goals max)
+      B: xgAway * 20,
       fullMark: 100,
     },
     {
       subject: 'Forme',
-      A: (analytics.formIndex?.home !== undefined ? (analytics.formIndex.home + 1) * 50 : 50), // -1..1 -> 0..100
-      B: (analytics.formIndex?.away !== undefined ? (analytics.formIndex.away + 1) * 50 : 50),
+      A: (formHome !== undefined ? (formHome + 1) * 50 : (analytics?.formIndex?.home !== undefined ? (analytics.formIndex.home + 1) * 50 : 50)), // -1..1 -> 0..100
+      B: (formAway !== undefined ? (formAway + 1) * 50 : (analytics?.formIndex?.away !== undefined ? (analytics.formIndex.away + 1) * 50 : 50)),
       fullMark: 100,
     },
     {
       subject: 'Défense',
-      A: (1 - (analytics.defenseFactor?.home || 0)) * 100 + 50, // Arbitrary scaling: lower factor is better? Context says >1 weaker defense. Let's assume inverse.
-      B: (1 - (analytics.defenseFactor?.away || 0)) * 100 + 50,
+      A: (1 - (defenseHome ?? analytics?.defenseFactor?.home ?? 0)) * 100 + 50, // lower factor is better
+      B: (1 - (defenseAway ?? analytics?.defenseFactor?.away ?? 0)) * 100 + 50,
       fullMark: 100,
     },
     {
       subject: 'Effectif',
-      A: (analytics.injuryFactor?.home || 1) * 100,
-      B: (analytics.injuryFactor?.away || 1) * 100,
+      A: (injuryHome ?? analytics?.injuryFactor?.home ?? 1) * 100,
+      B: (injuryAway ?? analytics?.injuryFactor?.away ?? 1) * 100,
       fullMark: 100,
     },
     {
       subject: 'Repos',
-      A: Math.min(100, (analytics.fatigue?.restHours?.home || 0) / 1.68), // 168h = 1 week = 100%
-      B: Math.min(100, (analytics.fatigue?.restHours?.away || 0) / 1.68),
+      A: Math.min(100, (restHome ?? analytics?.fatigue?.restHours?.home ?? 0) / 1.68), // 168h = 1 week = 100%
+      B: Math.min(100, (restAway ?? analytics?.fatigue?.restHours?.away ?? 0) / 1.68),
       fullMark: 100,
     },
     {
       subject: 'Elo',
-      A: ((analytics.ratings?.home || 1500) - 1000) / 10, // Scale 1000-2000 to 0-100
-      B: ((analytics.ratings?.away || 1500) - 1000) / 10,
+      A: ((ratingHome ?? analytics?.ratings?.home ?? 1500) - 1000) / 10, // Scale 1000-2000 to 0-100
+      B: ((ratingAway ?? analytics?.ratings?.away ?? 1500) - 1000) / 10,
       fullMark: 100,
     },
   ];
@@ -128,7 +142,7 @@ export function AnalysisTab({ match, prediction }: AnalysisTabProps) {
       </div>
 
       {/* 2. Opportunities List */}
-      <OpportunitiesList opportunities={analytics.opportunities || []} />
+      <OpportunitiesList opportunities={analytics?.opportunities || []} />
 
       {/* 3. Detailed Metrics Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -136,23 +150,23 @@ export function AnalysisTab({ match, prediction }: AnalysisTabProps) {
         <MetricCard
           title="Potential Offensif (xG)"
           icon={<Zap className="text-yellow-500" />}
-          homeValue={prediction.xG.home.toFixed(2)}
-          awayValue={prediction.xG.away.toFixed(2)}
+          homeValue={xgHome.toFixed(2)}
+          awayValue={xgAway.toFixed(2)}
           homeLabel={match.homeTeam.name}
           awayLabel={match.awayTeam.name}
         />
 
         {/* Form Card */}
-        {analytics.formIndex && (
+        {(formHome !== undefined && formAway !== undefined) && (
           <MetricCard
             title="Forme Récente"
             icon={<TrendingUp className="text-green-500" />}
-            homeValue={`${(analytics.formIndex.home * 100).toFixed(0)}%`}
-            awayValue={`${(analytics.formIndex.away * 100).toFixed(0)}%`}
+            homeValue={`${(formHome * 100).toFixed(0)}%`}
+            awayValue={`${(formAway * 100).toFixed(0)}%`}
             homeLabel={match.homeTeam.name}
             awayLabel={match.awayTeam.name}
-            homeColor={analytics.formIndex.home > 0 ? "text-green-500" : "text-red-500"}
-            awayColor={analytics.formIndex.away > 0 ? "text-green-500" : "text-red-500"}
+            homeColor={formHome > 0 ? "text-green-500" : "text-red-500"}
+            awayColor={formAway > 0 ? "text-green-500" : "text-red-500"}
           />
         )}
       </div>

@@ -170,13 +170,17 @@ function PlayerRow({ player, stats, isHome, isSub = false }: { player: FixturePl
                                 <span className="text-[10px] text-muted-foreground flex items-center gap-1">
                                     <Target className="w-3 h-3" /> xG
                                 </span>
-                                <span className="font-mono font-medium">{stats.xg.toFixed(2)}</span>
+                                <span className="font-mono font-medium">
+                                    {Number.isFinite(stats.xg) ? stats.xg.toFixed(2) : "--"}
+                                </span>
                             </div>
                             <div className="flex flex-col">
                                 <span className="text-[10px] text-muted-foreground flex items-center gap-1">
                                     <Zap className="w-3 h-3" /> xA
                                 </span>
-                                <span className="font-mono font-medium">{stats.xa.toFixed(2)}</span>
+                                <span className="font-mono font-medium">
+                                    {Number.isFinite(stats.xa) ? stats.xa.toFixed(2) : "--"}
+                                </span>
                             </div>
                             <div className="flex flex-col">
                                 <span className="text-[10px] text-muted-foreground flex items-center gap-1">

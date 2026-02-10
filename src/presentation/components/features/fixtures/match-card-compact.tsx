@@ -98,8 +98,8 @@ function formatMarketLabel(raw?: string, match?: Match) {
   const key = raw.trim()
   const lower = key.toLowerCase()
   const normalized = lower.replace(/[.\s,]+/g, "_")
-  const homeName = match?.homeTeam?.name || "Equipe domicile"
-  const awayName = match?.awayTeam?.name || "Equipe exterieur"
+  const homeName = match?.homeTeam?.name || "Équipe domicile"
+  const awayName = match?.awayTeam?.name || "Équipe extérieur"
 
   if (normalized.includes("ht") || normalized.includes("1h")) {
     const line = extractLine(lower)
@@ -193,11 +193,11 @@ function formatMarketLabel(raw?: string, match?: Match) {
   }
   if (normalized.startsWith("team_over_")) {
     const line = extractLine(normalized.replace(/^team_over_/, ""))
-    return `Equipe plus de ${line} buts`
+    return `Équipe plus de ${line} buts`
   }
   if (normalized.startsWith("team_under_")) {
     const line = extractLine(normalized.replace(/^team_under_/, ""))
-    return `Equipe moins de ${line} buts`
+    return `Équipe moins de ${line} buts`
   }
   if (normalized.startsWith("double_chance_")) {
     const dc = normalized
@@ -498,7 +498,9 @@ const MatchCardCompact = React.forwardRef<HTMLDivElement, MatchCardCompactProps>
               </span>
               {match.prediction?.type === "match_result" && (
                 <span className="text-[10px] text-text-tertiary tabular-nums">
-                  xG {match.prediction.xG.home.toFixed(2)}
+                  {Number.isFinite(match.prediction.xG?.home)
+                    ? `xG ${match.prediction.xG.home.toFixed(2)}`
+                    : "xG --"}
                 </span>
               )}
             </div>
@@ -541,7 +543,9 @@ const MatchCardCompact = React.forwardRef<HTMLDivElement, MatchCardCompactProps>
               </span>
               {match.prediction?.type === "match_result" && (
                 <span className="text-[10px] text-text-tertiary tabular-nums">
-                  xG {match.prediction.xG.away.toFixed(2)}
+                  {Number.isFinite(match.prediction.xG?.away)
+                    ? `xG ${match.prediction.xG.away.toFixed(2)}`
+                    : "xG --"}
                 </span>
               )}
             </div>
@@ -581,7 +585,7 @@ const MatchCardCompact = React.forwardRef<HTMLDivElement, MatchCardCompactProps>
           return (
             <div className="px-4 pb-3 flex justify-center items-center gap-1.5">
               <div className="inline-flex items-center gap-1.5 rounded-md bg-lime-100 border border-lime/20 px-2.5 py-1 text-[11px] text-navy">
-                <span className="font-medium text-navy/60">Prono</span>
+                <span className="font-medium text-navy/60">Proposition</span>
                 <span className="font-bold">{bestMarket.label}</span>
                 <span className="tabular-nums font-semibold text-lime-600">{formatPercent(bestMarket.prob)}</span>
               </div>
