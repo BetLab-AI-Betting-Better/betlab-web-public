@@ -143,6 +143,68 @@ export function formatMarketLabel(
     const line = extractLine(normalized.replace(/^totals_asian_under_/, ""))
     return `Total asiatique : Moins de ${line} buts`
   }
+
+  // Corners
+  if (normalized.startsWith("corners_over_")) {
+    const line = extractLine(normalized.replace(/^corners_over_/, ""))
+    return `Plus de ${line} corners`
+  }
+  if (normalized.startsWith("corners_under_")) {
+    const line = extractLine(normalized.replace(/^corners_under_/, ""))
+    return `Moins de ${line} corners`
+  }
+  if (normalized.startsWith("corners_home_over_")) {
+    const line = extractLine(normalized.replace(/^corners_home_over_/, ""))
+    return `Corners ${homeName} : Plus de ${line}`
+  }
+  if (normalized.startsWith("corners_home_under_")) {
+    const line = extractLine(normalized.replace(/^corners_home_under_/, ""))
+    return `Corners ${homeName} : Moins de ${line}`
+  }
+  if (normalized.startsWith("corners_away_over_")) {
+    const line = extractLine(normalized.replace(/^corners_away_over_/, ""))
+    return `Corners ${awayName} : Plus de ${line}`
+  }
+  if (normalized.startsWith("corners_away_under_")) {
+    const line = extractLine(normalized.replace(/^corners_away_under_/, ""))
+    return `Corners ${awayName} : Moins de ${line}`
+  }
+
+  // Cards
+  if (normalized.startsWith("cards_over_")) {
+    const line = extractLine(normalized.replace(/^cards_over_/, ""))
+    return `Plus de ${line} cartons`
+  }
+  if (normalized.startsWith("cards_home_over_")) {
+    const line = extractLine(normalized.replace(/^cards_home_over_/, ""))
+    return `Cartons ${homeName} : Plus de ${line}`
+  }
+  if (normalized.startsWith("cards_away_over_")) {
+    const line = extractLine(normalized.replace(/^cards_away_over_/, ""))
+    return `Cartons ${awayName} : Plus de ${line}`
+  }
+
+  // Shots on Target (SOT)
+  if (normalized.startsWith("sot_over_")) {
+    const line = extractLine(normalized.replace(/^sot_over_/, ""))
+    return `Plus de ${line} tirs cadrés`
+  }
+  if (normalized.startsWith("sot_home_over_")) {
+    const line = extractLine(normalized.replace(/^sot_home_over_/, ""))
+    return `Tirs cadrés ${homeName} : Plus de ${line}`
+  }
+  if (normalized.startsWith("sot_away_over_")) {
+    const line = extractLine(normalized.replace(/^sot_away_over_/, ""))
+    return `Tirs cadrés ${awayName} : Plus de ${line}`
+  }
+
+  // European Handicap (ehc_)
+  const ehcMatch = normalized.match(/^ehc_(-?\d+)_([1x2])$/)
+  if (ehcMatch) {
+    const hc = formatHandicapLine(ehcMatch[1])
+    const side = ehcMatch[2] === "1" ? homeName : ehcMatch[2] === "x" ? "Nul" : awayName
+    return `Handicap (${hc}) : ${side}`
+  }
   if (normalized.startsWith("team_over_")) {
     const line = extractLine(normalized.replace(/^team_over_/, ""))
     return `Equipe plus de ${line} buts`

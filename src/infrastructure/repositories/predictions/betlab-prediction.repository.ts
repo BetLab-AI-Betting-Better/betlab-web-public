@@ -16,6 +16,8 @@ import {
   transformMarketsToAsianTotals,
   transformMarketsToExactGoals,
   transformMarketsToDoubleChance,
+  transformMarketsToCorners,
+  transformMarketsToEuropeanHandicap,
   type API1X2Response,
   type APIMarketsResponse,
   type APIOddsResponse,
@@ -83,8 +85,11 @@ async function fetchPrediction(
       return transformMarketsToExactGoals(predictionData as APIMarketsResponse, fixtureId);
     case "double_chance":
       return transformMarketsToDoubleChance(predictionData as APIMarketsResponse, fixtureId);
-    case "half_time":
     case "corners":
+      return transformMarketsToCorners(predictionData as APIMarketsResponse, fixtureId);
+    case "european_handicap":
+      return transformMarketsToEuropeanHandicap(predictionData as APIMarketsResponse, fixtureId);
+    case "half_time":
     case "first_goal": {
       console.warn(
         `Prediction type "${type}" not implemented. Falling back to match_result transformation.`

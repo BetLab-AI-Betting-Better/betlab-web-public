@@ -27,12 +27,12 @@ export function TeamChoiceSection({ matches }: TeamChoiceSectionProps) {
                     <div className="p-1 px-2.5 rounded-full bg-lime text-navy-950 text-[9px] font-black uppercase tracking-[0.1em] shadow-[0_2px_10px_rgba(184,204,58,0.3)] border border-white/20">
                         Exclusif
                     </div>
-                    <h2 className="text-[15px] font-black text-navy-950 uppercase tracking-tighter flex items-center gap-1.5 dark:text-white">
-                        <Star className="w-4 h-4 fill-lime text-lime animate-pulse" />
+                    <h2 className="text-[13px] font-black text-navy-900 uppercase tracking-tight flex items-center gap-1.5 dark:text-white">
+                        <Star className="w-3.5 h-3.5 fill-lime text-lime animate-pulse" />
                         Choix de l'équipe
                     </h2>
                 </div>
-                <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest tabular-nums">Top {topPicks.length} Selection</div>
+                <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest tabular-nums font-mono">Top Selection</div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -56,54 +56,44 @@ export function TeamChoiceSection({ matches }: TeamChoiceSectionProps) {
                                     <div className="w-6 h-6 rounded-full bg-gray-50 flex items-center justify-center p-1 dark:bg-navy-950">
                                         <img src={match.league.logo} alt="" className="w-full h-full object-contain" />
                                     </div>
-                                    <span className="text-[11px] font-bold text-gray-500 uppercase tracking-widest truncate max-w-[120px] dark:text-gray-400">
+                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest truncate max-w-[120px]">
                                         {match.league.name}
                                     </span>
                                 </div>
-                                <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-success/5 text-success text-[11px] font-bold border border-success/10">
+                                <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-success/5 text-success text-[10px] font-bold border border-success/10">
                                     <TrendingUp className="w-3 h-3" />
                                     {formatBestMarketPercent(match.bestMarket?.prob)}
                                 </div>
                             </div>
 
                             {/* Teams */}
-                            <div className="flex items-center gap-4 mb-5">
+                            <div className="flex items-center gap-4 mb-3">
                                 <div className="flex-1 min-w-0 space-y-2">
                                     <div className="flex items-center gap-3">
-                                        <img src={match.home.logo} alt="" className="w-6 h-6 object-contain" />
-                                        <span className="text-sm font-black text-navy-950 truncate leading-none dark:text-white">
+                                        <img src={match.home.logo} alt="" className="w-5 h-5 object-contain" />
+                                        <span className="text-xs font-black text-navy-950 truncate leading-none dark:text-white">
                                             {match.home.name}
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-3">
-                                        <img src={match.away.logo} alt="" className="w-6 h-6 object-contain" />
-                                        <span className="text-sm font-black text-navy-950 truncate leading-none dark:text-white">
+                                        <img src={match.away.logo} alt="" className="w-5 h-5 object-contain" />
+                                        <span className="text-xs font-black text-navy-950 truncate leading-none dark:text-white">
                                             {match.away.name}
                                         </span>
                                     </div>
                                 </div>
 
                                 {/* Prediction Bubble */}
-                                <div className="flex flex-col items-center justify-center min-w-[100px] px-3 py-2.5 rounded-xl bg-lime-50 border border-lime-200/50 shadow-inner group-hover:bg-lime/20 dark:bg-lime-900/20 dark:border-lime-800/30 transition-colors">
-                                    <span className="text-[9px] font-black text-lime-700 uppercase tracking-[0.15em] mb-0.5 dark:text-lime-400">
+                                <div className="flex flex-col items-center justify-center min-w-[90px] px-2 py-2 rounded-xl bg-lime-50 border border-lime-200/50 group-hover:bg-lime/20 dark:bg-lime-900/10 dark:border-lime-800/20 transition-colors">
+                                    <span className="text-[8px] font-black text-lime-700 uppercase tracking-widest mb-0.5 dark:text-lime-400">
                                         Prono
                                     </span>
-                                    <span className="text-[12px] font-black uppercase text-center leading-tight text-navy-950 dark:text-white text-balance">
+                                    <span className="text-[11px] font-black uppercase text-center leading-tight text-navy-950 dark:text-white text-balance">
                                         {match.bestMarket?.label}
                                     </span>
                                 </div>
                             </div>
 
-                            {/* Footer action */}
-                            <div className="mt-auto pt-3 border-t border-gray-100/80 flex items-center justify-between dark:border-navy-800">
-                                <span className="text-[10px] text-gray-400 font-semibold italic flex items-center gap-1.5 dark:text-gray-500">
-                                    <div className="w-1 h-1 rounded-full bg-lime animate-pulse" />
-                                    Analyse détaillée incluse
-                                </span>
-                                <span className="flex items-center gap-1 text-[11px] font-black text-navy-900 group-hover:text-lime transition-colors dark:text-navy-100">
-                                    ANALYSER <ChevronRight className="w-3.5 h-3.5 stroke-[3]" />
-                                </span>
-                            </div>
                         </div>
                     </NextLink>
                 ))}

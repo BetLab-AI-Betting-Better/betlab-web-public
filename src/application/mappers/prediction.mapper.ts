@@ -14,6 +14,8 @@ import type {
   AsianTotalsPrediction,
   ExactGoalsPrediction,
   DoubleChancePrediction,
+  CornersPrediction,
+  EuropeanHandicapPrediction,
   PredictionData,
 } from "@/core/entities/predictions/prediction.entity";
 
@@ -153,6 +155,7 @@ export interface APIMarketsResponse {
       bracket: string
       probability: number
     }>
+    [key: string]: any
   }
   opportunities?: Array<{
     type: string
@@ -564,4 +567,98 @@ export function transformMarketsToDoubleChance(
     },
     confidence: calculateConfidence(Math.max(home + draw, home + away, draw + away))
   }
+}
+
+/**
+ * Transform Markets endpoint response to CornersPrediction
+ */
+export function transformMarketsToCorners(
+  response: APIMarketsResponse,
+  fixtureId: number
+): CornersPrediction {
+  const markets = response.markets;
+  const over: Array<{ line: number; probability: number }> = [];
+  const under: Array<{ line: number; probability: number }> = [];
+
+  Object.keys(markets).forEach(key => {
+    if (key.startsWith("corners_over_")) {
+      const lineStr = key.replace("corners_over_", "").replace("_", ".");
+      const line = parseFloat(lineStr);
+      if (!isNaN(line)) {
+        over.push({ line, probability: markets[key].prob });
+      }
+    } else if (key.startsWith("corners_under_")) {
+      const lineStr = key.replace("corners_under_", "").replace("_", ".");
+      const line = parseFloat(lineStr);
+      if (!isNaN(line)) {
+        under.push({ line, probability: markets[key].prob });
+      }
+    }
+  });
+
+  over.sort((a, b) => a.line - b.line);
+  under.sort((a, b) => a.line - b.line);
+
+  // Fallback if no lines found
+  if (over.length === 0 && under.length === 0) {
+    return {
+      fixtureId,
+      type: "corners",
+      over: [],
+      under: [],
+      expectedTotal: 0,
+      confidence: "low"
+    };
+  }
+
+  // Use the predicted values from inputs if available
+  const muHome = (response.inputs as any).mu_corners_home ?? 5;
+  const muAway = (response.inputs as any).mu_corners_away ?? 4;
+  const expectedTotal = muHome + muAway;
+
+  return {
+    fixtureId,
+    type: "corners",
+    over,
+    under,
+    expectedTotal,
+    confidence: "medium"
+  };
+}
+
+/**
+ * Transform Markets endpoint response to EuropeanHandicapPrediction
+ */
+export function transformMarketsToEuropeanHandicap(
+  response: APIMarketsResponse,
+  fixtureId: number
+): EuropeanHandicapPrediction {
+  const markets = response.markets;
+  const linesMap: Record<number, { line: number; home: number; draw: number; away: number }> = {};
+
+  Object.keys(markets).forEach(key => {
+    // Keys like ehc_1_1, ehc_1_X, ehc_1_2
+    const match = key.match(/^ehc_(-?\d+)_([1X2])$/);
+    if (match) {
+      const line = parseInt(match[1], 10);
+      const outcome = match[2];
+
+      if (!linesMap[line]) {
+        linesMap[line] = { line, home: 0, draw: 0, away: 0 };
+      }
+
+      if (outcome === "1") linesMap[line].home = markets[key].prob;
+      else if (outcome === "X") linesMap[line].draw = markets[key].prob;
+      else if (outcome === "2") linesMap[line].away = markets[key].prob;
+    }
+  });
+
+  const lines = Object.values(linesMap).sort((a, b) => a.line - b.line);
+
+  return {
+    fixtureId,
+    type: "european_handicap",
+    lines,
+    confidence: "medium"
+  };
 }

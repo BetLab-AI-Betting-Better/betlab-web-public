@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { cn } from "@/shared/utils"
 import type { MatchDetailVM } from "@/application/view-models/match-detail/match-detail.vm"
-import { MatchResultCard, OverUnderCard, BTTSCard, CorrectScoreCard, HtFtCard } from "./prediction-cards"
+import { MatchResultCard, OverUnderCard, BTTSCard, CorrectScoreCard, HtFtCard, CornersCard, HandicapCard, DoubleChanceCard } from "./prediction-cards"
 import { Grid, Layers, LayoutGrid, Target, Clock } from "lucide-react"
 
 interface PredictionsTabProps {
@@ -11,11 +11,11 @@ interface PredictionsTabProps {
 }
 
 type MarketType =
-  | "match_result"
-  | "both_teams_score"
-  | "over_under"
-  | "correct_score"
   | "ht_ft"
+  | "asian_handicap"
+  | "asian_totals"
+  | "corners"
+  | "double_chance"
 
 interface MarketCategory {
   id: MarketType
@@ -26,7 +26,11 @@ interface MarketCategory {
 const marketCategories: MarketCategory[] = [
   { id: "match_result", label: "Resultat (1N2)", icon: <Grid size={16} /> },
   { id: "over_under", label: "Total buts", icon: <Layers size={16} /> },
+  { id: "asian_handicap", label: "Handicaps", icon: <Layers size={16} /> },
+  { id: "asian_totals", label: "Totaux Asiatiques", icon: <Layers size={16} /> },
+  { id: "corners", label: "Corners", icon: <Target size={16} /> },
   { id: "both_teams_score", label: "Les 2 marquent", icon: <Target size={16} /> },
+  { id: "double_chance", label: "Double Chance", icon: <Grid size={16} /> },
   { id: "correct_score", label: "Score exact", icon: <LayoutGrid size={16} /> },
   { id: "ht_ft", label: "Mi-temps / Fin", icon: <Clock size={16} /> },
 ]
@@ -97,6 +101,30 @@ export function PredictionsTab({ vm }: PredictionsTabProps) {
             <CorrectScoreCard vm={vm.cards.correctScore} />
           ) : (
             renderNoData("Les probabilites Score exact ne sont pas disponibles.")
+          )
+        ) : selectedType === "asian_handicap" ? (
+          vm.cards.asianHandicap.available ? (
+            <HandicapCard handicapVM={vm.cards.asianHandicap} />
+          ) : (
+            renderNoData("Les probabilites de Handicap ne sont pas disponibles.")
+          )
+        ) : selectedType === "asian_totals" ? (
+          vm.cards.asianTotals.available ? (
+            <HandicapCard totalsVM={vm.cards.asianTotals} />
+          ) : (
+            renderNoData("Les probabilites de Totaux Asiatiques ne sont pas disponibles.")
+          )
+        ) : selectedType === "corners" ? (
+          vm.cards.corners.available ? (
+            <CornersCard vm={vm.cards.corners} />
+          ) : (
+            renderNoData("Les probabilites de Corners ne sont pas disponibles.")
+          )
+        ) : selectedType === "double_chance" ? (
+          vm.cards.doubleChance.available ? (
+            <DoubleChanceCard vm={vm.cards.doubleChance} />
+          ) : (
+            renderNoData("Les probabilites de Double Chance ne sont pas disponibles.")
           )
         ) : (
           renderNoData("Probabilites non disponibles pour ce marche.")

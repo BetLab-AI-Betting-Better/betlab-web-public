@@ -118,6 +118,9 @@ export class BetlabMatchDetailRepository implements IMatchDetailRepository {
       "asian_handicap",
       "asian_totals",
       "exact_goals",
+      "corners",
+      "european_handicap",
+      "double_chance",
     ];
 
     try {

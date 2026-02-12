@@ -17,6 +17,7 @@ export type PredictionType =
   | "exact_goals"
   | "half_time"
   | "corners"
+  | "european_handicap"
   | "first_goal";
 
 export type ConfidenceLevel = "high" | "medium" | "low";
@@ -158,6 +159,27 @@ export interface DoubleChancePrediction {
   confidence: ConfidenceLevel;
 }
 
+export interface CornersPrediction {
+  fixtureId: number;
+  type: "corners";
+  over: Array<{ line: number; probability: number }>;
+  under: Array<{ line: number; probability: number }>;
+  expectedTotal: number;
+  confidence: ConfidenceLevel;
+}
+
+export interface EuropeanHandicapPrediction {
+  fixtureId: number;
+  type: "european_handicap";
+  lines: Array<{
+    line: number;
+    home: number;
+    draw: number;
+    away: number;
+  }>;
+  confidence: ConfidenceLevel;
+}
+
 export type PredictionData =
   | MatchResultPrediction
   | OverUnderPrediction
@@ -167,7 +189,9 @@ export type PredictionData =
   | AsianHandicapPrediction
   | AsianTotalsPrediction
   | ExactGoalsPrediction
-  | DoubleChancePrediction;
+  | DoubleChancePrediction
+  | EuropeanHandicapPrediction
+  | CornersPrediction;
 
 export interface PredictionWithUI {
   prediction: PredictionData;

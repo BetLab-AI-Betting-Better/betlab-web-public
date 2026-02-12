@@ -97,6 +97,62 @@ export type PredictionCardsVM = {
   overUnder: OverUnderCardVM
   correctScore: CorrectScoreCardVM
   htFt: HtFtCardVM
+  corners: CornersCardVM
+  asianHandicap: AsianHandicapCardVM
+  asianTotals: AsianTotalsCardVM
+  doubleChance: DoubleChanceCardVM
+}
+
+export type CornersRow = { line: number; over: number; under: number }
+
+export type CornersCardVM = {
+  available: boolean
+  title: string
+  confidence?: ConfidenceBadge
+  expectedTotal: number
+  rows: CornersRow[]
+}
+
+export type AsianHandicapLine = { line: number; home: number; away: number; push: number }
+
+export type AsianHandicapCardVM = {
+  available: boolean
+  title: string
+  confidence?: ConfidenceBadge
+  lines: AsianHandicapLine[]
+}
+
+export type AsianTotalsLine = { line: number; over: number; under: number; push: number }
+
+export type AsianTotalsCardVM = {
+  available: boolean
+  title: string
+  confidence?: ConfidenceBadge
+  lines: AsianTotalsLine[]
+}
+
+export type DoubleChanceCardVM = {
+  available: boolean
+  title: string
+  confidence?: ConfidenceBadge
+  homeOrDraw: number
+  homeOrAway: number
+  drawOrAway: number
+  homeOrDrawOdds?: number
+  homeOrAwayOdds?: number
+  drawOrAwayOdds?: number
+}
+
+export type PredictionCardsVM = {
+  matchResult: MatchResultCardVM
+  btts: BTTSCardVM
+  overUnder: OverUnderCardVM
+  correctScore: CorrectScoreCardVM
+  htFt: HtFtCardVM
+  corners: CornersCardVM
+  asianHandicap: AsianHandicapCardVM
+  asianTotals: AsianTotalsCardVM
+  doubleChance: DoubleChanceCardVM
 }
 
 const htStates = [
@@ -154,9 +210,9 @@ function buildMatchResultCard(match: MatchDetail, prediction?: MatchResultPredic
     confidence: confidenceVariants[prediction.confidence],
     xg: prediction.xG
       ? {
-          home: prediction.xG.home.toFixed(2),
-          away: prediction.xG.away.toFixed(2),
-        }
+        home: prediction.xG.home.toFixed(2),
+        away: prediction.xG.away.toFixed(2),
+      }
       : undefined,
     rows,
     reasoning: prediction.reasoning,
@@ -309,13 +365,90 @@ function buildHtFtCard(match: MatchDetail): HtFtCardVM {
   }
 }
 
-export function buildPredictionCardsVM(match: MatchDetail): PredictionCardsVM {
-  const prediction = match.predictions?.find((p) => p.type === "match_result") as MatchResultPrediction | undefined
+function buildCornersCard(match: MatchDetail): CornersCardVM {
+  const prediction = match.predictions?.find((p) => p.type === "corners") as any
+  if (!prediction) return { available: false, title: "Corners", expectedTotal: 0, rows: [] }
+
+  const rows: CornersRow[] = prediction.over.map((o: any, idx: number) => ({
+    line: o.line,
+    over: o.probability * 100,
+    under: prediction.under[idx]?.probability * 100 || 0,
+  }))
+
   return {
-    matchResult: buildMatchResultCard(match, prediction),
+    available: true,
+    title: "Corners (Over/Under)",
+    confidence: confidenceVariants[prediction.confidence || "medium"],
+    expectedTotal: prediction.expectedTotal,
+    rows,
+  }
+}
+
+function buildAsianHandicapCard(match: MatchDetail): AsianHandicapCardVM {
+  const prediction = match.predictions?.find((p) => p.type === "asian_handicap") as any
+  if (!prediction) return { available: false, title: "Handicap Asiatique", lines: [] }
+
+  return {
+    available: true,
+    title: "Handicap Asiatique",
+    confidence: confidenceVariants[prediction.confidence || "medium"],
+    lines: prediction.lines.map((l: any) => ({
+      line: l.line,
+      home: l.home * 100,
+      away: l.away * 100,
+      push: l.push * 100,
+    })),
+  }
+}
+
+function buildAsianTotalsCard(match: MatchDetail): AsianTotalsCardVM {
+  const prediction = match.predictions?.find((p) => p.type === "asian_totals") as any
+  if (!prediction) return { available: false, title: "Totaux Asiatiques", lines: [] }
+
+  return {
+    available: true,
+    title: "Totaux Asiatiques",
+    confidence: confidenceVariants[prediction.confidence || "medium"],
+    lines: prediction.lines.map((l: any) => ({
+      line: l.line,
+      over: l.over * 100,
+      under: l.under * 100,
+      push: l.push * 100,
+    })),
+  }
+}
+
+function buildDoubleChanceCard(match: MatchDetail): DoubleChanceCardVM {
+  const prediction = match.predictions?.find((p) => p.type === "double_chance") as any
+  if (!prediction)
+    return { available: false, title: "Double Chance", homeOrDraw: 0, homeOrAway: 0, drawOrAway: 0 }
+
+  return {
+    available: true,
+    title: "Double Chance",
+    confidence: confidenceVariants[prediction.confidence || "medium"],
+    homeOrDraw: prediction.homeOrDraw.probability * 100,
+    homeOrAway: prediction.homeOrAway.probability * 100,
+    drawOrAway: prediction.drawOrAway.probability * 100,
+    homeOrDrawOdds: prediction.homeOrDraw.odds,
+    homeOrAwayOdds: prediction.homeOrAway.odds,
+    drawOrAwayOdds: prediction.drawOrAway.odds,
+  }
+}
+
+export function buildPredictionCardsVM(match: MatchDetail): PredictionCardsVM {
+  const resultPred = match.predictions?.find((p) => p.type === "match_result") as
+    | MatchResultPrediction
+    | undefined
+  return {
+    matchResult: buildMatchResultCard(match, resultPred),
     btts: buildBttsCard(match),
     overUnder: buildOverUnderCard(match),
     correctScore: buildCorrectScoreCard(match),
     htFt: buildHtFtCard(match),
+    corners: buildCornersCard(match),
+    asianHandicap: buildAsianHandicapCard(match),
+    asianTotals: buildAsianTotalsCard(match),
+    doubleChance: buildDoubleChanceCard(match),
   }
 }
