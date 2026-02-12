@@ -5,16 +5,19 @@ import Image from "next/image"
 import { cn } from "@/shared/utils"
 import type { MatchDetail } from "@/core/entities/match-detail/match-detail.entity"
 import type { MatchResultPrediction } from "@/core/entities/predictions/prediction.entity"
+import type { MatchDetailVM } from "@/application/view-models/match-detail/match-detail.vm"
+import { getMatchConfidence, getMatchPrediction } from "@/application/view-models/match-detail/match-detail.selectors"
 
 interface MatchHeaderProps {
   match: MatchDetail
+  vm?: MatchDetailVM
 }
 
 /**
  * Header sticky premium du match — gradient navy avec impact visuel
  * Mobile-first avec touch targets >= 44px
  */
-export function MatchHeader({ match }: MatchHeaderProps) {
+export function MatchHeader({ match, vm }: MatchHeaderProps) {
   const isLive = match.status === "live"
   const isFinished = match.status === "finished"
   const isScheduled = match.status === "scheduled"
@@ -22,8 +25,8 @@ export function MatchHeader({ match }: MatchHeaderProps) {
   const homeLogo = (match.homeTeam.logo || "").trim() || "/icon-32.png"
   const awayLogo = (match.awayTeam.logo || "").trim() || "/icon-32.png"
 
-  const mainPrediction = match.predictions?.find(p => p.type === "match_result") as MatchResultPrediction | undefined
-  const confidence = mainPrediction?.confidence
+  const mainPrediction = getMatchPrediction(match)
+  const confidence = vm?.header.confidence ?? getMatchConfidence(match, mainPrediction ?? undefined)
 
   return (
     <div className="sticky top-0 z-50 gradient-header shadow-xl">

@@ -2,11 +2,15 @@
 
 import type { MatchDetail } from "@/core/entities/match-detail/match-detail.entity"
 import type { PredictionData, MatchResultPrediction } from "@/core/entities/predictions/prediction.entity"
+import type { MatchDetailVM } from "@/application/view-models/match-detail/match-detail.vm"
+import { getMatch1x2, getMatchXg } from "@/application/view-models/match-detail/match-detail.selectors"
+import { formatMarketLabel } from "@/application/view-models/fixtures/market-label.fr"
 
 interface ModelNarrationProps {
   match: MatchDetail
   prediction?: PredictionData
   predictions?: PredictionData[]
+  vm?: MatchDetailVM
 }
 
 function formatPercent(value?: number) {
@@ -16,11 +20,30 @@ function formatPercent(value?: number) {
 
 function buildNarration(match: MatchDetail, prediction?: PredictionData): string {
   if (!prediction && !match.probabilities) {
-    return "Donn?es de mod?le indisponibles pour ce match."
+    return "Donnees de modele indisponibles pour ce match."
   }
 
-  if (prediction.type === "match_result") {
+  if (prediction && prediction.type === "match_result") {
     const p = prediction as MatchResultPrediction
+
+    // If we have a specific best market (value bet), use it for narration
+    if (p.best_market && typeof p.best_market === "object") {
+      const bm = p.best_market as any
+      const marketKey = bm.market || bm.label
+      if (marketKey) {
+        const label = formatMarketLabel(marketKey, {
+          homeName: match.homeTeam.name,
+          awayName: match.awayTeam.name,
+        })
+        const probValue = bm.prob ? ` (${formatPercent(bm.prob)})` : ""
+        const xgHome = p.xG?.home ?? 0
+        const xgAway = p.xG?.away ?? 0
+        const reasoning = p.reasoning ? ` ${p.reasoning}` : ""
+
+        return `Projection : ${label}${probValue}. xG attendus : ${xgHome.toFixed(2)}-${xgAway.toFixed(2)}.${reasoning}`
+      }
+    }
+
     const home = p.homeWin?.probability ?? 0
     const draw = p.draw?.probability ?? 0
     const away = p.awayWin?.probability ?? 0
@@ -34,30 +57,30 @@ function buildNarration(match: MatchDetail, prediction?: PredictionData): string
   }
 
   if (!prediction && match.probabilities) {
-    const p = match.probabilities
-    const m = p.markets?.["1x2"]
-    if (m) {
-      const best = Math.max(m.home, m.draw, m.away)
-      const bestLabel = best === m.home ? "V1" : best === m.draw ? "Nul" : "V2"
-      return `Projection ${bestLabel} (${formatPercent(best)}). xG attendus: ${p.inputs.mu_home.toFixed(2)}-${p.inputs.mu_away.toFixed(2)}.`
+    const probs = getMatch1x2(match)
+    const xg = getMatchXg(match)
+    if (probs) {
+      const best = Math.max(probs.home, probs.draw, probs.away)
+      const bestLabel = best === probs.home ? "V1" : best === probs.draw ? "Nul" : "V2"
+      return `Projection ${bestLabel} (${formatPercent(best)}). xG attendus: ${xg.home.toFixed(2)}-${xg.away.toFixed(2)}.`
     }
   }
 
-  return `Le mod?le fournit des probabilit?s pour le march? "${prediction?.type ?? "inconnu"}".`
+  return `Le modele fournit des probabilites pour le marche "${prediction?.type ?? "inconnu"}".`
 }
-
 
 function formatLabel(label: string, match: MatchDetail): string {
   if (label === "first_to_score.home") return `Premier but : ${match.homeTeam.name}`
   if (label === "first_to_score.away") return `Premier but : ${match.awayTeam.name}`
-  // Fallback cleanup
   return label.replace(/_/g, " ")
 }
 
-export function ModelNarration({ match, prediction, predictions }: ModelNarrationProps) {
-  const narration = buildNarration(match, prediction)
+export function ModelNarration({ match, prediction, predictions, vm }: ModelNarrationProps) {
+  const narration = vm ? buildNarration(vm.match, prediction) : buildNarration(match, prediction)
   const opportunities =
-    prediction?.type === "match_result" ? (prediction as MatchResultPrediction).analytics?.opportunities ?? [] : []
+    prediction?.type === "match_result"
+      ? (prediction as MatchResultPrediction).analytics?.opportunities ?? []
+      : []
 
   return (
     <div className="rounded-lg border border-[var(--navy)]/10 bg-[var(--navy-ultra-light)] p-4">
@@ -75,7 +98,7 @@ export function ModelNarration({ match, prediction, predictions }: ModelNarratio
                 key={`${o.type}-${o.label}`}
                 className="rounded-full bg-white/80 px-2 py-0.5 text-[11px] text-[var(--navy)]"
               >
-                {formatLabel(o.label, match)} · {formatPercent(o.prob)}
+                {formatLabel(o.label, match)} ? {formatPercent(o.prob)}
               </span>
             ))}
           </div>

@@ -60,6 +60,14 @@ export interface MatchResultPrediction {
       prob: number;
     }>;
   };
+  best_market?: {
+    market: string;
+    label?: string;
+    prob: number;
+    odds?: number;
+    edge?: number;
+    stake?: number;
+  };
 }
 
 export interface OverUnderPrediction {

@@ -1,11 +1,12 @@
 "use client"
 
 import * as React from "react"
-import { MatchCardCompact, type Match } from "./match-card-compact"
+import { MatchCardCompact } from "./match-card-compact"
+import type { MatchCardVM } from "@/application/view-models/fixtures/match-card.vm"
 import { cn } from "@/shared/utils"
 
 export interface HorizontalMatchListProps extends React.HTMLAttributes<HTMLDivElement> {
-  matches: Match[]
+  matches: MatchCardVM[]
   onMatchClick: (matchId: string) => void
   onFavoriteToggle?: (matchId: string) => void
   snapScroll?: boolean

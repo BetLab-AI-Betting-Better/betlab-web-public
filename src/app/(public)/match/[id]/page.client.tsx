@@ -20,18 +20,20 @@ import {
   type TabId,
 } from "@/presentation/components/features/match-detail";
 import type { MatchDetail } from "@/core/entities/match-detail/match-detail.entity";
+import { buildMatchDetailVM } from "@/application/view-models/match-detail/match-detail.vm";
 
 interface MatchDetailClientProps {
   match: MatchDetail;
 }
 
 export function MatchDetailClient({ match }: MatchDetailClientProps) {
+  const vm = buildMatchDetailVM(match)
   const [activeTab, setActiveTab] = useState<TabId>("overview");
 
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Match Header */}
-      <MatchHeader match={match} />
+      <MatchHeader match={match} vm={vm} />
 
       {/* Tabs Navigation */}
       <TabsNavigation activeTab={activeTab} onTabChange={setActiveTab} />
@@ -39,17 +41,18 @@ export function MatchDetailClient({ match }: MatchDetailClientProps) {
       {/* Tab Content */}
       <div className="container mx-auto">
         {activeTab === "overview" && (
-          <OverviewTab match={match} />
+          <OverviewTab match={match} vm={vm} />
         )}
 
         {activeTab === "predictions" && (
-          <PredictionsTab match={match} predictions={match.predictions} />
+          <PredictionsTab vm={vm} />
         )}
 
         {activeTab === "analysis" && (
           <AnalysisTab
             match={match}
             prediction={match.predictions?.find(p => p.type === "match_result")}
+            vm={vm}
           />
         )}
 

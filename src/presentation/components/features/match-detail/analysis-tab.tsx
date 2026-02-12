@@ -3,11 +3,19 @@
 import { cn } from "@/shared/utils"
 import type { MatchDetail } from "@/core/entities/match-detail/match-detail.entity"
 import type { MatchResultPrediction, AsianHandicapPrediction, AsianTotalsPrediction, ExactGoalsPrediction } from "@/core/entities/predictions/prediction.entity"
-import { TrendingUp, Heart, Shield, Clock, Zap, Users, Info } from "lucide-react"
+import type { MatchDetailVM } from "@/application/view-models/match-detail/match-detail.vm"
+import {
+  getMatchXg,
+  getMatchFormIndex,
+  getMatchDefenseFactor,
+  getMatchInjuryFactor,
+  getMatchRestHours,
+  getMatchRatings,
+} from "@/application/view-models/match-detail/match-detail.selectors"
+import { TrendingUp, Zap, Info } from "lucide-react"
 import { OpportunitiesList } from "./smart-analysis/opportunities"
 import { GoalsHeatmap } from "./smart-analysis/goals-heatmap"
 import { AsianMarketsSummary } from "./smart-analysis/asian-markets"
-import { ModelNarration } from "./model-narration"
 import {
   ResponsiveContainer,
   RadarChart,
@@ -22,12 +30,19 @@ import {
 interface AnalysisTabProps {
   match: MatchDetail
   prediction?: MatchResultPrediction
+  vm?: MatchDetailVM
 }
 
-export function AnalysisTab({ match, prediction }: AnalysisTabProps) {
-  const probabilities = match.probabilities
-  const inputs = probabilities?.inputs
+export function AnalysisTab({ match, prediction, vm }: AnalysisTabProps) {
+  const inputs = match.probabilities?.inputs
+  const vmAnalysis = vm?.analysis
   const analytics = prediction?.analytics
+  const xg = vmAnalysis?.xg ?? getMatchXg(match, prediction)
+  const formIndex = vmAnalysis?.formIndex ?? getMatchFormIndex(match, prediction)
+  const defense = vmAnalysis?.defense ?? getMatchDefenseFactor(match, prediction)
+  const injury = vmAnalysis?.injury ?? getMatchInjuryFactor(match, prediction)
+  const rest = vmAnalysis?.rest ?? getMatchRestHours(match, prediction)
+  const ratings = vmAnalysis?.ratings ?? getMatchRatings(match, prediction)
 
   if (!inputs && !analytics) {
     return (
@@ -35,61 +50,48 @@ export function AnalysisTab({ match, prediction }: AnalysisTabProps) {
         <div className="bg-card border rounded-lg p-6">
           <h3 className="text-lg font-semibold mb-4">Analyse indisponible</h3>
           <p className="text-muted-foreground">
-            Les données d&apos;analyse avancée ne sont pas disponibles pour ce match.
+            Les donnees d&apos;analyse avancee ne sont pas disponibles pour ce match.
           </p>
         </div>
       </div>
     )
   }
 
-  const xgHome = Number.isFinite(inputs?.mu_home) ? inputs!.mu_home : (Number.isFinite(prediction?.xG?.home) ? prediction!.xG.home : 0)
-  const xgAway = Number.isFinite(inputs?.mu_away) ? inputs!.mu_away : (Number.isFinite(prediction?.xG?.away) ? prediction!.xG.away : 0)
-  const formHome = inputs?.form_index_home
-  const formAway = inputs?.form_index_away
-  const defenseHome = inputs?.defense_factor_home
-  const defenseAway = inputs?.defense_factor_away
-  const injuryHome = inputs?.injury_factor_home
-  const injuryAway = inputs?.injury_factor_away
-  const restHome = inputs?.rest_hours_home
-  const restAway = inputs?.rest_hours_away
-  const ratingHome = inputs?.rating_home
-  const ratingAway = inputs?.rating_away
-
-  const radarData = [
+  const radarData = vmAnalysis?.radarData ?? [
     {
       subject: 'Attaque (xG)',
-      A: xgHome * 20, // Scale xG approx to 0-100 (assuming 5 goals max)
-      B: xgAway * 20,
+      A: xg.home * 20, // Scale xG approx to 0-100 (assuming 5 goals max)
+      B: xg.away * 20,
       fullMark: 100,
     },
     {
       subject: 'Forme',
-      A: (formHome !== undefined ? (formHome + 1) * 50 : (analytics?.formIndex?.home !== undefined ? (analytics.formIndex.home + 1) * 50 : 50)), // -1..1 -> 0..100
-      B: (formAway !== undefined ? (formAway + 1) * 50 : (analytics?.formIndex?.away !== undefined ? (analytics.formIndex.away + 1) * 50 : 50)),
+      A: (formIndex?.home !== undefined ? (formIndex.home + 1) * 50 : 50), // -1..1 -> 0..100
+      B: (formIndex?.away !== undefined ? (formIndex.away + 1) * 50 : 50),
       fullMark: 100,
     },
     {
-      subject: 'Défense',
-      A: (1 - (defenseHome ?? analytics?.defenseFactor?.home ?? 0)) * 100 + 50, // lower factor is better
-      B: (1 - (defenseAway ?? analytics?.defenseFactor?.away ?? 0)) * 100 + 50,
+      subject: 'Defense',
+      A: (1 - (defense?.home ?? 0)) * 100 + 50,
+      B: (1 - (defense?.away ?? 0)) * 100 + 50,
       fullMark: 100,
     },
     {
       subject: 'Effectif',
-      A: (injuryHome ?? analytics?.injuryFactor?.home ?? 1) * 100,
-      B: (injuryAway ?? analytics?.injuryFactor?.away ?? 1) * 100,
+      A: (injury?.home ?? 1) * 100,
+      B: (injury?.away ?? 1) * 100,
       fullMark: 100,
     },
     {
       subject: 'Repos',
-      A: Math.min(100, (restHome ?? analytics?.fatigue?.restHours?.home ?? 0) / 1.68), // 168h = 1 week = 100%
-      B: Math.min(100, (restAway ?? analytics?.fatigue?.restHours?.away ?? 0) / 1.68),
+      A: Math.min(100, (rest?.home ?? 0) / 1.68), // 168h = 1 week = 100%
+      B: Math.min(100, (rest?.away ?? 0) / 1.68),
       fullMark: 100,
     },
     {
       subject: 'Elo',
-      A: ((ratingHome ?? analytics?.ratings?.home ?? 1500) - 1000) / 10, // Scale 1000-2000 to 0-100
-      B: ((ratingAway ?? analytics?.ratings?.away ?? 1500) - 1000) / 10,
+      A: ((ratings?.home ?? 1500) - 1000) / 10,
+      B: ((ratings?.away ?? 1500) - 1000) / 10,
       fullMark: 100,
     },
   ];
@@ -142,7 +144,7 @@ export function AnalysisTab({ match, prediction }: AnalysisTabProps) {
       </div>
 
       {/* 2. Opportunities List */}
-      <OpportunitiesList opportunities={analytics?.opportunities || []} />
+      <OpportunitiesList opportunities={(vmAnalysis?.opportunities ?? analytics?.opportunities) || []} />
 
       {/* 3. Detailed Metrics Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -150,23 +152,23 @@ export function AnalysisTab({ match, prediction }: AnalysisTabProps) {
         <MetricCard
           title="Potential Offensif (xG)"
           icon={<Zap className="text-yellow-500" />}
-          homeValue={xgHome.toFixed(2)}
-          awayValue={xgAway.toFixed(2)}
+          homeValue={xg.home.toFixed(2)}
+          awayValue={xg.away.toFixed(2)}
           homeLabel={match.homeTeam.name}
           awayLabel={match.awayTeam.name}
         />
 
         {/* Form Card */}
-        {(formHome !== undefined && formAway !== undefined) && (
+        {formIndex?.home !== undefined && formIndex?.away !== undefined && (
           <MetricCard
             title="Forme Récente"
             icon={<TrendingUp className="text-green-500" />}
-            homeValue={`${(formHome * 100).toFixed(0)}%`}
-            awayValue={`${(formAway * 100).toFixed(0)}%`}
+            homeValue={`${(formIndex.home * 100).toFixed(0)}%`}
+            awayValue={`${(formIndex.away * 100).toFixed(0)}%`}
             homeLabel={match.homeTeam.name}
             awayLabel={match.awayTeam.name}
-            homeColor={formHome > 0 ? "text-green-500" : "text-red-500"}
-            awayColor={formAway > 0 ? "text-green-500" : "text-red-500"}
+            homeColor={formIndex.home > 0 ? "text-green-500" : "text-red-500"}
+            awayColor={formIndex.away > 0 ? "text-green-500" : "text-red-500"}
           />
         )}
       </div>

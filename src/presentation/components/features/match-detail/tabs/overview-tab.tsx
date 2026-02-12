@@ -4,31 +4,30 @@ import { cn } from "@/shared/utils"
 import { useState, useEffect } from "react"
 import type { MatchDetail } from "@/core/entities/match-detail/match-detail.entity"
 import type { MatchResultPrediction } from "@/core/entities/predictions/prediction.entity"
+import type { MatchDetailVM } from "@/application/view-models/match-detail/match-detail.vm"
+import {
+    getMatch1x2,
+    getMatchConfidence,
+    getMatchFormIndex,
+    getMatchPrediction,
+} from "@/application/view-models/match-detail/match-detail.selectors"
 import { TrendingUp, Activity, Target, Shield, AlertTriangle, CheckCircle2 } from "lucide-react"
 
 interface OverviewTabProps {
     match: MatchDetail
+    vm?: MatchDetailVM
 }
 
-export function OverviewTab({ match }: OverviewTabProps) {
+export function OverviewTab({ match, vm }: OverviewTabProps) {
     const [accuracy, setAccuracy] = useState<{ accuracy: number } | null>(null);
     const probabilities = match.probabilities
-    const mainPrediction = match.predictions?.find(p => p.type === "match_result") as MatchResultPrediction | undefined
+    const mainPrediction = getMatchPrediction(match)
     const analytics = mainPrediction?.analytics
-    const reasoning = mainPrediction?.reasoning ?? ""
-    const headline = reasoning.split(".")[0] || "Analyse en cours..."
-
-    const markets1x2 = probabilities?.markets?.["1x2"]
-    const homeProb = markets1x2?.home ?? mainPrediction?.homeWin?.probability ?? 0
-    const drawProb = markets1x2?.draw ?? mainPrediction?.draw?.probability ?? 0
-    const awayProb = markets1x2?.away ?? mainPrediction?.awayWin?.probability ?? 0
-    const maxProb = Math.max(homeProb, drawProb, awayProb)
-    const confidence =
-        maxProb >= 0.6 ? "high" : maxProb >= 0.45 ? "medium" : "low"
-
-    const inputs = probabilities?.inputs
-    const formIndexHome = inputs?.form_index_home
-    const formIndexAway = inputs?.form_index_away
+    const reasoning = vm?.overview.reasoning ?? (mainPrediction?.reasoning ?? "")
+    const headline = vm?.overview.headline ?? (reasoning.split(".")[0] || "Analyse en cours...")
+    const probs = vm?.overview.probs ?? getMatch1x2(match, mainPrediction ?? undefined)
+    const formIndex = vm?.analysis.formIndex ?? getMatchFormIndex(match, mainPrediction ?? undefined)
+    const confidence = vm?.overview.confidence ?? getMatchConfidence(match, mainPrediction ?? undefined)
 
     useEffect(() => {
         const fetchAccuracy = async () => {
@@ -100,30 +99,30 @@ export function OverviewTab({ match }: OverviewTabProps) {
                             <div className="w-full bg-background/50 h-3 rounded-full overflow-hidden flex shadow-inner">
                                 <div
                                     className="bg-[var(--navy)] h-full transition-all duration-1000"
-                                    style={{ width: `${homeProb * 100}%` }}
+                                    style={{ width: `${(probs?.home ?? 0) * 100}%` }}
                                 />
                                 <div
                                     className="bg-gray-300 h-full transition-all duration-1000"
-                                    style={{ width: `${drawProb * 100}%` }}
+                                    style={{ width: `${(probs?.draw ?? 0) * 100}%` }}
                                 />
                                 <div
                                     className="bg-[var(--cyan)] h-full transition-all duration-1000"
-                                    style={{ width: `${awayProb * 100}%` }}
+                                    style={{ width: `${(probs?.away ?? 0) * 100}%` }}
                                 />
                             </div>
                             <div className="flex justify-between text-xs font-bold text-muted-foreground px-1">
-                                <span>{match.homeTeam.name} {(homeProb * 100).toFixed(0)}%</span>
-                                <span>Nul {(drawProb * 100).toFixed(0)}%</span>
-                                <span>{match.awayTeam.name} {(awayProb * 100).toFixed(0)}%</span>
+                                <span>{match.homeTeam.name} {((probs?.home ?? 0) * 100).toFixed(0)}%</span>
+                                <span>Nul {((probs?.draw ?? 0) * 100).toFixed(0)}%</span>
+                                <span>{match.awayTeam.name} {((probs?.away ?? 0) * 100).toFixed(0)}%</span>
                             </div>
                         </div>
 
                         {/* Right: Key Stats Circle or Metric */}
-                        {(formIndexHome !== undefined && formIndexAway !== undefined) && (
+                        {(formIndex?.home !== undefined && formIndex?.away !== undefined) && (
                             <div className="flex flex-col items-center gap-2 p-4 bg-background/60 rounded-xl backdrop-blur-sm border shadow-sm">
                                 <Activity className="w-6 h-6 text-primary" />
                                 <div className="text-2xl font-bold">
-                                    {Math.abs(formIndexHome - formIndexAway).toFixed(2)}
+                                    {Math.abs(formIndex!.home - formIndex!.away).toFixed(2)}
                                 </div>
                                 <div className="text-[10px] uppercase font-bold text-muted-foreground">Delta Forme</div>
                             </div>

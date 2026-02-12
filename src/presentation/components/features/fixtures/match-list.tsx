@@ -2,14 +2,15 @@
 
 import * as React from "react"
 import { useInView } from "react-intersection-observer"
-import { MatchCardCompact, type Match } from "./match-card-compact"
+import { MatchCardCompact } from "./match-card-compact"
 import { MatchCardSkeleton } from "./match-card-skeleton"
 import { groupMatchesByTimeSlots } from "./utils/match-grouping"
 import { Clock } from "lucide-react"
 import { cn } from "@/shared/utils"
+import type { MatchCardVM } from "@/application/view-models/fixtures/match-card.vm"
 
 export interface MatchListProps extends React.HTMLAttributes<HTMLDivElement> {
-  matches: Match[]
+  matches: MatchCardVM[]
   isLoading?: boolean
   onMatchClick: (matchId: string) => void
   onFavoriteToggle?: (matchId: string) => void
@@ -24,7 +25,7 @@ const MatchList = React.forwardRef<HTMLDivElement, MatchListProps>(
       isLoading = false,
       onMatchClick,
       onFavoriteToggle,
-      emptyMessage = "Aucun match trouve pour les filtres selectionnes",
+      emptyMessage = "Aucun match trouv? pour les filtres s?lectionn?s",
       skeletonCount = 6,
       className,
       ...props
@@ -67,7 +68,6 @@ const MatchList = React.forwardRef<HTMLDivElement, MatchListProps>(
       <div ref={ref} className={cn("space-y-6", className)} {...props}>
         {timeSlotGroups.map((timeSlot) => (
           <section key={timeSlot.label} className="space-y-3">
-            {/* Time slot divider */}
             <div className="flex items-center gap-3">
               <span className="text-[12px] font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">
                 {timeSlot.label}
@@ -78,10 +78,8 @@ const MatchList = React.forwardRef<HTMLDivElement, MatchListProps>(
               </span>
             </div>
 
-            {/* Sub-slots with grid */}
             {timeSlot.subSlots.map((subSlot) => (
               <div key={subSlot.label} className="space-y-2">
-                {/* Sub-slot time label */}
                 <div className="flex items-center gap-2 pl-1">
                   <Clock className="w-3 h-3 text-navy/40" />
                   <span className="text-[11px] font-medium text-navy/50">
@@ -89,7 +87,6 @@ const MatchList = React.forwardRef<HTMLDivElement, MatchListProps>(
                   </span>
                 </div>
 
-                {/* Match grid */}
                 <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-3">
                   {subSlot.matches.map((match) => (
                     <MatchCardCompact
@@ -105,13 +102,12 @@ const MatchList = React.forwardRef<HTMLDivElement, MatchListProps>(
           </section>
         ))}
 
-        {/* Lazy loading trigger */}
         <div ref={inViewRef} className="h-4" aria-hidden="true" />
 
         {inView && timeSlotGroups.length > 0 && (
           <div className="text-center py-4">
             <span className="text-[11px] text-gray-400">
-              Tous les matchs sont charges
+              Tous les matchs sont charg?s
             </span>
           </div>
         )}
@@ -150,7 +146,7 @@ function EmptyState({ message }: { message: string }) {
           {message}
         </p>
         <p className="text-[11px] text-gray-400 pt-1">
-          Modifiez vos filtres ou selectionnez une autre date
+          Modifiez vos filtres ou s?lectionnez une autre date
         </p>
       </div>
     </div>

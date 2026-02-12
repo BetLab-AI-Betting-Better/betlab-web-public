@@ -21,10 +21,11 @@ import {
   PredictionsSelector,
   FiltersPanel,
   MatchList,
+  TeamChoiceSection,
 } from "@/presentation/components/features/fixtures";
 import { useFixtureFilters } from "@/presentation/hooks/fixtures/use-fixture-filters";
 import { useLiveScores } from "@/presentation/hooks/fixtures/use-live-scores";
-import { validatePrediction, validateBestMarket } from "./utils/prediction-validation";
+import { buildMatchCardVM } from "@/application/view-models/fixtures/match-card.vm";
 import type { MatchWithPrediction } from "@/core/entities/fixtures/fixture.entity";
 import { cn } from "@/shared/utils";
 
@@ -89,72 +90,49 @@ export function HomeFixturesClient({ initialMatches }: HomeFixturesClientProps) 
   };
 
   // Live scores polling — merges live data into filtered matches
-  const { matches: liveMatches, isLive, lastUpdate } = useLiveScores(filteredMatches);
+  const { matches: liveMatches, isLive } = useLiveScores(filteredMatches);
 
   const hasActiveFilters = selectedConfidences.length > 0 || minProbability > 0 || xGRange[0] > 0 || xGRange[1] < 5;
   const activeFilterCount = selectedConfidences.length + (minProbability > 0 ? 1 : 0) + (xGRange[0] > 0 || xGRange[1] < 5 ? 1 : 0);
 
-  // Extract raw best market label matching getBestMarket() paths
-  function extractRawBestMarketLabel(prediction: MatchWithPrediction["prediction"]): string | null {
-    if (!prediction) return null;
-    const anyPred = prediction as unknown as Record<string, unknown>;
-
-    // Path 1: direct best_market / bestMarket
-    const direct = (anyPred.best_market ?? anyPred.bestMarket) as { market?: string; label?: string; rule?: { label?: string } } | undefined;
-    if (direct) {
-      const raw = direct.market ?? direct.label ?? direct.rule?.label;
-      if (raw) return raw;
-    }
-
-    // Path 2: opportunities
-    if (prediction.type === "match_result") {
-      const opps = prediction.analytics?.opportunities ?? [];
-      if (opps.length > 0) {
-        const best = opps.reduce((acc, cur) => cur.prob > acc.prob ? cur : acc);
-        return best.label;
-      }
-      // Path 3: 1X2 fallback
-      const home = prediction.homeWin?.probability ?? 0;
-      const draw = prediction.draw?.probability ?? 0;
-      const away = prediction.awayWin?.probability ?? 0;
-      const max = Math.max(home, draw, away);
-      return max === home ? "1x2_home" : max === draw ? "1x2_draw" : "1x2_away";
-    }
-
-    return null;
-  }
 
   // Prediction performance stats for finished matches
+  const matchVMs = useMemo(() => liveMatches.map(buildMatchCardVM), [liveMatches]);
+
   const predictionStats = useMemo(() => {
     let total1x2 = 0;
     let correct1x2 = 0;
     let totalProno = 0;
     let correctProno = 0;
 
-    for (const match of liveMatches) {
-      if (match.status !== "finished" || !match.score || !match.prediction) continue;
+    for (const match of matchVMs) {
+      if (match.status !== "finished" || !match.validation) continue;
 
-      const result = validatePrediction(match.prediction, match.score, match.status);
-
-      // Count void as correct/win as requested
-      if (result.matchResultOutcome !== null) {
+      if (match.validation.matchResultOutcome !== null) {
         total1x2++;
-        if (result.matchResultOutcome === "correct" || result.matchResultOutcome === "half-win" || result.matchResultOutcome === "void") correct1x2++;
+        if (
+          match.validation.matchResultOutcome === "correct" ||
+          match.validation.matchResultOutcome === "half-win" ||
+          match.validation.matchResultOutcome === "void"
+        ) {
+          correct1x2++;
+        }
       }
 
-      // Best market prono — mirrors getBestMarket() logic
-      const rawLabel = extractRawBestMarketLabel(match.prediction);
-      if (rawLabel) {
-        const outcome = validateBestMarket(rawLabel, match.score, match.status);
-        if (outcome !== null) {
-          totalProno++;
-          if (outcome === "correct" || outcome === "half-win" || outcome === "void") correctProno++;
+      if (match.bestMarket && match.validation.bestMarketOutcome !== null) {
+        totalProno++;
+        if (
+          match.validation.bestMarketOutcome === "correct" ||
+          match.validation.bestMarketOutcome === "half-win" ||
+          match.validation.bestMarketOutcome === "void"
+        ) {
+          correctProno++;
         }
       }
     }
 
     return { total1x2, correct1x2, totalProno, correctProno };
-  }, [liveMatches]);
+  }, [matchVMs]);
 
   return (
     <div className="space-y-4">
@@ -164,6 +142,9 @@ export function HomeFixturesClient({ initialMatches }: HomeFixturesClientProps) 
         onDateChange={handleDateChange}
         matchCountsByDate={matchCountsByDate}
       />
+
+      {/* ── 1.5. Team's Choice ──────────────────────── */}
+      <TeamChoiceSection matches={matchVMs} />
 
       {/* ── 2. Unified toolbar ─────────────────────── */}
       <div className="bg-surface-elevated rounded-xl border border-gray-200/60 shadow-sm">
@@ -302,7 +283,7 @@ export function HomeFixturesClient({ initialMatches }: HomeFixturesClientProps) 
 
       {/* ── 4. Match grid ──────────────────────────── */}
       <MatchList
-        matches={liveMatches}
+        matches={matchVMs}
         onMatchClick={handleMatchClick}
       />
     </div>

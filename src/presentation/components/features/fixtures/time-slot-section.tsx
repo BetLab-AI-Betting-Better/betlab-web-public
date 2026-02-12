@@ -21,7 +21,7 @@
 
 import * as React from "react"
 import { HorizontalMatchList } from "./horizontal-match-list"
-import { type Match } from "./match-card-compact"
+import type { MatchCardVM } from "@/application/view-models/fixtures/match-card.vm"
 import { cn } from "@/shared/utils"
 
 export interface TimeSlotSectionProps
@@ -34,7 +34,7 @@ export interface TimeSlotSectionProps
   /**
    * Liste des matchs du créneau
    */
-  matches: Match[]
+  matches: MatchCardVM[]
 
   /**
    * Callback au clic sur un match

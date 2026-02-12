@@ -2,33 +2,21 @@
 
 import { Hash } from "lucide-react"
 import { cn } from "@/shared/utils"
-import type { MatchDetail } from "@/core/entities/match-detail/match-detail.entity"
+import type { CorrectScoreCardVM } from "@/application/view-models/match-detail/prediction-cards.vm"
 
 interface CorrectScoreCardProps {
-  match: MatchDetail
+  vm: CorrectScoreCardVM
 }
 
-const confidenceVariants = {
-  high: { className: "bg-green-100 text-green-800", label: "Confiance élevée" },
-  medium: { className: "bg-yellow-100 text-yellow-800", label: "Confiance moyenne" },
-  low: { className: "bg-red-100 text-red-800", label: "Confiance faible" },
-}
-
-/**
- * Card de prédiction pour le score exact
- * Utilise les données de probabilités de l'API BetLab
- */
-export function CorrectScoreCard({ match }: CorrectScoreCardProps) {
-  const probabilities = match.probabilities
-
-  if (!probabilities) {
+export function CorrectScoreCard({ vm }: CorrectScoreCardProps) {
+  if (!vm.available) {
     return (
       <div className="overflow-hidden border rounded-lg bg-card">
         <div className="p-6">
           <div className="text-center space-y-4 py-8">
-            <h3 className="text-lg font-semibold">Données non disponibles</h3>
+            <h3 className="text-lg font-semibold">Donnees non disponibles</h3>
             <p className="text-sm text-muted-foreground">
-              Les probabilités de score exact ne sont pas disponibles pour ce match.
+              Les probabilites de score exact ne sont pas disponibles pour ce match.
             </p>
           </div>
         </div>
@@ -36,47 +24,36 @@ export function CorrectScoreCard({ match }: CorrectScoreCardProps) {
     )
   }
 
-  const { correct_score_top } = probabilities.markets
-  const topScores = correct_score_top.slice(0, 10)
-  const mostLikely = topScores[0]?.score || "0-0"
-
-  // Determine confidence based on top score probability
-  const topProb = (topScores[0]?.probability || 0) * 100
-  let confidence: "high" | "medium" | "low"
-  if (topProb > 20) confidence = "high"
-  else if (topProb > 12) confidence = "medium"
-  else confidence = "low"
-
-  const confidenceConfig = confidenceVariants[confidence]
+  const topScores = vm.topScores
+  const mostLikely = vm.mostLikely || "0-0"
 
   return (
     <div className="overflow-hidden border rounded-lg bg-card">
-      {/* Header */}
       <div className="p-4 border-b">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Hash className="w-5 h-5 text-[var(--navy)]" />
-            <h3 className="text-lg font-semibold">Score Exact</h3>
+            <h3 className="text-lg font-semibold">{vm.title}</h3>
           </div>
-          <span className={cn("px-3 py-1 rounded-full text-xs font-medium", confidenceConfig.className)}>
-            {confidenceConfig.label}
-          </span>
+          {vm.confidence && (
+            <span className={cn("px-3 py-1 rounded-full text-xs font-medium", vm.confidence.className)}>
+              {vm.confidence.label}
+            </span>
+          )}
         </div>
       </div>
 
       <div className="p-4 space-y-6">
-        {/* Most Likely Score */}
         <div className="text-center p-6 bg-[var(--lime)]/10 rounded-lg border-2 border-[var(--lime)]">
           <div className="text-xs text-muted-foreground font-medium mb-2">Score le plus probable</div>
           <div className="text-4xl font-bold text-[var(--navy)] mb-2">
             {mostLikely}
           </div>
           <div className="text-sm text-muted-foreground">
-            {((topScores[0]?.probability || 0) * 100).toFixed(1)}% de probabilité
+            {(topScores[0]?.probability ?? 0).toFixed(1)}% de probabilite
           </div>
         </div>
 
-        {/* Top Scores Grid */}
         <div className="space-y-3">
           <div className="text-sm font-medium text-muted-foreground">Top 10 des scores les plus probables</div>
           <div className="grid grid-cols-2 gap-2">
@@ -105,7 +82,7 @@ export function CorrectScoreCard({ match }: CorrectScoreCardProps) {
                       <span className="text-lg font-bold">{score.score}</span>
                     </div>
                     <div className="text-right">
-                      <div className="text-sm font-semibold">{(score.probability * 100).toFixed(1)}%</div>
+                      <div className="text-sm font-semibold">{score.probability.toFixed(1)}%</div>
                     </div>
                   </div>
                 </div>
@@ -114,10 +91,9 @@ export function CorrectScoreCard({ match }: CorrectScoreCardProps) {
           </div>
         </div>
 
-        {/* Score Distribution */}
         <div className="pt-4 border-t">
           <div className="text-xs text-muted-foreground text-center">
-            Ces 10 scores représentent {(topScores.reduce((sum, s) => sum + s.probability, 0) * 100).toFixed(1)}% de tous les résultats possibles
+            Ces 10 scores representent {vm.topShare.toFixed(1)}% de tous les resultats possibles
           </div>
         </div>
       </div>

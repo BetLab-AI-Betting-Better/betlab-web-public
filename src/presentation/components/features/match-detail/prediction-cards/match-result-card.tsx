@@ -2,175 +2,100 @@
 
 import { Trophy } from "lucide-react"
 import { cn } from "@/shared/utils"
-import type { MatchDetail } from "@/core/entities/match-detail/match-detail.entity"
-import type { MatchResultPrediction } from "@/core/entities/predictions/prediction.entity"
+import type { MatchResultCardVM } from "@/application/view-models/match-detail/prediction-cards.vm"
 
 interface MatchResultCardProps {
-  prediction: MatchResultPrediction
-  match: MatchDetail
+  vm: MatchResultCardVM
 }
 
-const confidenceVariants = {
-  high: { className: "bg-green-100 text-green-800", label: "Confiance élevée" },
-  medium: { className: "bg-yellow-100 text-yellow-800", label: "Confiance moyenne" },
-  low: { className: "bg-red-100 text-red-800", label: "Confiance faible" },
-}
-
-/**
- * Card de prédiction pour le résultat du match (1X2)
- * Affiche les probabilités pour Home Win, Draw, Away Win
- */
-export function MatchResultCard({ prediction, match }: MatchResultCardProps) {
-  if (!prediction) return null;
-
-  const { homeWin, draw, awayWin, confidence, reasoning, xG } = prediction
-  const confidenceConfig = confidenceVariants[confidence]
+export function MatchResultCard({ vm }: MatchResultCardProps) {
+  if (!vm.available) {
+    return (
+      <div className="overflow-hidden border rounded-lg bg-card">
+        <div className="p-6">
+          <div className="text-center space-y-4 py-8">
+            <h3 className="text-lg font-semibold">Donnees non disponibles</h3>
+            <p className="text-sm text-muted-foreground">
+              Les probabilites de resultat ne sont pas disponibles pour ce match.
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="overflow-hidden border rounded-lg bg-card">
-      {/* Header */}
       <div className="p-4 border-b">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Trophy className="w-5 h-5 text-[var(--navy)]" />
-            <h3 className="text-lg font-semibold">Résultat du match</h3>
+            <h3 className="text-lg font-semibold">{vm.title}</h3>
           </div>
-          <span className={cn("px-3 py-1 rounded-full text-xs font-medium", confidenceConfig.className)}>
-            {confidenceConfig.label}
-          </span>
+          {vm.confidence && (
+            <span className={cn("px-3 py-1 rounded-full text-xs font-medium", vm.confidence.className)}>
+              {vm.confidence.label}
+            </span>
+          )}
         </div>
       </div>
 
       <div className="p-4 space-y-6">
-        {/* xG Display */}
-        {xG && (
+        {vm.xg && (
           <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
             <div className="text-center flex-1">
               <div className="text-xs text-muted-foreground mb-1">xG Domicile</div>
-              <div className="text-lg font-bold">{xG.home.toFixed(2)}</div>
+              <div className="text-lg font-bold">{vm.xg.home}</div>
             </div>
             <div className="text-xs text-muted-foreground">vs</div>
             <div className="text-center flex-1">
-              <div className="text-xs text-muted-foreground mb-1">xG Extérieur</div>
-              <div className="text-lg font-bold">{xG.away.toFixed(2)}</div>
+              <div className="text-xs text-muted-foreground mb-1">xG Exterieur</div>
+              <div className="text-lg font-bold">{vm.xg.away}</div>
             </div>
           </div>
         )}
 
-        {/* Home Win */}
-        <div className="space-y-2">
-          <div className="flex justify-between items-center text-sm">
-            <span className="font-medium">{match.homeTeam.name} gagne</span>
-            <span className="font-bold text-lg">{(homeWin.probability * 100).toFixed(1)}%</span>
-          </div>
-          <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
-            <div
-              className={cn(
-                "h-full bg-[var(--lime)] transition-all duration-500",
-                homeWin.probability > 0.5 && "bg-[var(--lime)]"
-              )}
-              style={{ width: `${homeWin.probability * 100}%` }}
-            />
-          </div>
-          {homeWin.odds && (
-            <div className="flex justify-between items-center">
-              <span className="text-xs text-muted-foreground">Cote juste</span>
-              <span className="text-sm font-semibold text-[var(--navy)]">
-                {homeWin.odds.toFixed(2)}
-              </span>
+        {vm.rows.map((row) => (
+          <div key={row.label} className="space-y-2">
+            <div className="flex justify-between items-center text-sm">
+              <span className="font-medium">{row.label}</span>
+              <span className="font-bold text-lg">{row.probability.toFixed(1)}%</span>
             </div>
-          )}
-        </div>
-
-        {/* Draw */}
-        <div className="space-y-2">
-          <div className="flex justify-between items-center text-sm">
-            <span className="font-medium">Match nul</span>
-            <span className="font-bold text-lg">{(draw.probability * 100).toFixed(1)}%</span>
-          </div>
-          <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
-            <div
-              className={cn(
-                "h-full bg-[var(--lime)] transition-all duration-500",
-                draw.probability > 0.5 && "bg-[var(--lime)]"
-              )}
-              style={{ width: `${draw.probability * 100}%` }}
-            />
-          </div>
-          {draw.odds && (
-            <div className="flex justify-between items-center">
-              <span className="text-xs text-muted-foreground">Cote juste</span>
-              <span className="text-sm font-semibold text-[var(--navy)]">
-                {draw.odds.toFixed(2)}
-              </span>
+            <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
+              <div
+                className={cn("h-full bg-[var(--lime)] transition-all duration-500")}
+                style={{ width: `${row.probability}%` }}
+              />
             </div>
-          )}
-        </div>
-
-        {/* Away Win */}
-        <div className="space-y-2">
-          <div className="flex justify-between items-center text-sm">
-            <span className="font-medium">{match.awayTeam.name} gagne</span>
-            <span className="font-bold text-lg">{(awayWin.probability * 100).toFixed(1)}%</span>
+            {row.odds && (
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-muted-foreground">Cote juste</span>
+                <span className="text-sm font-semibold text-[var(--navy)]">
+                  {row.odds.toFixed(2)}
+                </span>
+              </div>
+            )}
           </div>
-          <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
-            <div
-              className={cn(
-                "h-full bg-[var(--lime)] transition-all duration-500",
-                awayWin.probability > 0.5 && "bg-[var(--lime)]"
-              )}
-              style={{ width: `${awayWin.probability * 100}%` }}
-            />
-          </div>
-          {awayWin.odds && (
-            <div className="flex justify-between items-center">
-              <span className="text-xs text-muted-foreground">Cote juste</span>
-              <span className="text-sm font-semibold text-[var(--navy)]">
-                {awayWin.odds.toFixed(2)}
-              </span>
-            </div>
-          )}
-        </div>
+        ))}
 
-        {/* Reasoning */}
-        {reasoning && (
+        {vm.reasoning && (
           <div className="mt-4 p-4 bg-muted rounded-lg border border-border">
             <p className="text-sm text-muted-foreground leading-relaxed">
-              {reasoning}
+              {vm.reasoning}
             </p>
           </div>
         )}
 
-        {/* Best Bet */}
-        <div className="pt-4 border-t">
-          {homeWin.probability > draw.probability &&
-            homeWin.probability > awayWin.probability && (
-              <div className="flex items-center justify-between p-3 bg-[var(--lime)]/10 rounded-lg">
-                <span className="text-sm font-medium">Meilleur pari</span>
-                <span className="text-sm font-bold text-[var(--navy)]">
-                  {match.homeTeam.name} gagne
-                </span>
-              </div>
-            )}
-          {draw.probability > homeWin.probability &&
-            draw.probability > awayWin.probability && (
-              <div className="flex items-center justify-between p-3 bg-[var(--lime)]/10 rounded-lg">
-                <span className="text-sm font-medium">Meilleur pari</span>
-                <span className="text-sm font-bold text-[var(--navy)]">
-                  Match nul
-                </span>
-              </div>
-            )}
-          {awayWin.probability > homeWin.probability &&
-            awayWin.probability > draw.probability && (
-              <div className="flex items-center justify-between p-3 bg-[var(--lime)]/10 rounded-lg">
-                <span className="text-sm font-medium">Meilleur pari</span>
-                <span className="text-sm font-bold text-[var(--navy)]">
-                  {match.awayTeam.name} gagne
-                </span>
-              </div>
-            )}
-        </div>
+        {vm.bestBetLabel && (
+          <div className="pt-4 border-t">
+            <div className="flex items-center justify-between p-3 bg-[var(--lime)]/10 rounded-lg">
+              <span className="text-sm font-medium">Meilleur pari</span>
+              <span className="text-sm font-bold text-[var(--navy)]">
+                {vm.bestBetLabel}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

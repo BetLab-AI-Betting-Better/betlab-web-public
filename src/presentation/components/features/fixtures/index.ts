@@ -12,6 +12,7 @@ export { SportSelector } from "./sport-selector";
 export { LeaguesSelector } from "./leagues-selector";
 export { PredictionsSelector } from "./predictions-selector";
 export { FiltersPanel } from "./filters-panel";
+export { TeamChoiceSection } from "./team-choice-section";
 
 // Match Display Components
 export { MatchList } from "./match-list";
