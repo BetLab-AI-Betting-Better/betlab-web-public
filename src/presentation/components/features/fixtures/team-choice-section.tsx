@@ -66,9 +66,9 @@ export function TeamChoiceSection({ matches }: TeamChoiceSectionProps) {
                                 </div>
                             </div>
 
-                            {/* Teams */}
-                            <div className="flex items-center gap-4 mb-3">
-                                <div className="flex-1 min-w-0 space-y-2">
+                            {/* Teams + Proposition */}
+                            <div className="mb-3 space-y-3">
+                                <div className="space-y-2">
                                     <div className="flex items-center gap-3">
                                         <img src={match.home.logo} alt="" className="w-5 h-5 object-contain" />
                                         <span className="text-xs font-black text-navy-950 truncate leading-none dark:text-white">
@@ -83,12 +83,11 @@ export function TeamChoiceSection({ matches }: TeamChoiceSectionProps) {
                                     </div>
                                 </div>
 
-                                {/* Prediction Bubble */}
-                                <div className="flex flex-col items-center justify-center min-w-[90px] px-2 py-2 rounded-xl bg-lime-50 border border-lime-200/50 group-hover:bg-lime/20 dark:bg-lime-900/10 dark:border-lime-800/20 transition-colors">
-                                    <span className="text-[8px] font-black text-lime-700 uppercase tracking-widest mb-0.5 dark:text-lime-400">
-                                        Prono
+                                <div className="flex flex-col gap-1 px-3 py-2 rounded-xl bg-lime-50 border border-lime-200/50 group-hover:bg-lime/20 dark:bg-lime-900/10 dark:border-lime-800/20 transition-colors">
+                                    <span className="text-[8px] font-black text-lime-700 uppercase tracking-widest dark:text-lime-400">
+                                        Proposition du jour
                                     </span>
-                                    <span className="text-[11px] font-black uppercase text-center leading-tight text-navy-950 dark:text-white text-balance">
+                                    <span className="text-[11px] font-black uppercase leading-tight text-navy-950 dark:text-white text-balance line-clamp-2">
                                         {match.bestMarket?.label}
                                     </span>
                                 </div>

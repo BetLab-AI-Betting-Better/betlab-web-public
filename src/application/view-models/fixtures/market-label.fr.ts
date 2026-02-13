@@ -199,11 +199,13 @@ export function formatMarketLabel(
   }
 
   // European Handicap (ehc_)
-  const ehcMatch = normalized.match(/^ehc_(-?\d+)_([1x2])$/)
+  const ehcMatch = normalized.match(/ehc_(-?\d+)_([1x2])$/)
   if (ehcMatch) {
-    const hc = formatHandicapLine(ehcMatch[1])
-    const side = ehcMatch[2] === "1" ? homeName : ehcMatch[2] === "x" ? "Nul" : awayName
-    return `Handicap europeen (${hc}) : ${side}`
+    const line = parseInt(ehcMatch[1], 10)
+    const home = line > 0 ? line : 0
+    const away = line < 0 ? Math.abs(line) : 0
+    const outcome = ehcMatch[2] === "1" ? "V1" : ehcMatch[2] === "2" ? "V2" : "X"
+    return `Handicap europeen (${home}:${away})${outcome}`
   }
   if (normalized.startsWith("team_over_")) {
     const line = extractLine(normalized.replace(/^team_over_/, ""))
