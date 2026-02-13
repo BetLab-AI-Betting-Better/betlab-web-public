@@ -3,7 +3,6 @@
 import { cn } from "@/shared/utils"
 import { useState, useEffect } from "react"
 import type { MatchDetail } from "@/core/entities/match-detail/match-detail.entity"
-import type { MatchResultPrediction } from "@/core/entities/predictions/prediction.entity"
 import type { MatchDetailVM } from "@/application/view-models/match-detail/match-detail.vm"
 import {
     getMatch1x2,
@@ -11,7 +10,7 @@ import {
     getMatchFormIndex,
     getMatchPrediction,
 } from "@/application/view-models/match-detail/match-detail.selectors"
-import { TrendingUp, Activity, Target, Shield, AlertTriangle, CheckCircle2 } from "lucide-react"
+import { TrendingUp, Activity, Target, Shield, Sparkles } from "lucide-react"
 
 interface OverviewTabProps {
     match: MatchDetail
@@ -58,6 +57,12 @@ export function OverviewTab({ match, vm }: OverviewTabProps) {
         : confidence === "medium"
             ? "bg-yellow-500/10 border-yellow-500/20"
             : "bg-red-500/10 border-red-500/20"
+
+    const topOpportunities = (vm?.analysis.opportunities ?? analytics?.opportunities ?? [])
+        .slice()
+        .sort((a, b) => b.prob - a.prob)
+        .slice(0, 3)
+
 
     return (
         <div className="space-y-6 p-4 max-w-4xl mx-auto animation-fade-in">
@@ -156,6 +161,33 @@ export function OverviewTab({ match, vm }: OverviewTabProps) {
                 </div>
             )}
 
+            {topOpportunities.length > 0 && (
+                <div className="rounded-2xl border bg-card p-4 md:p-5">
+                    <div className="flex items-center gap-2 mb-3">
+                        <Sparkles className="w-4 h-4 text-[var(--navy)]" />
+                        <h3 className="text-sm font-bold">Top 3 propositions</h3>
+                    </div>
+                    <div className="space-y-2">
+                        {topOpportunities.map((opportunity, index) => (
+                            <div
+                                key={`${opportunity.label}-${index}`}
+                                className="flex items-center justify-between rounded-xl border bg-muted/30 px-3 py-2"
+                            >
+                                <div className="flex items-center gap-2 min-w-0">
+                                    <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[var(--navy)] text-white text-[10px] font-bold">
+                                        {index + 1}
+                                    </span>
+                                    <span className="text-sm font-medium truncate">{opportunity.label}</span>
+                                </div>
+                                <span className="text-sm font-bold text-[var(--navy)] tabular-nums">
+                                    {(opportunity.prob * 100).toFixed(1)}%
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {/* 3. Quick Stats Comparison */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <StatCard
@@ -190,7 +222,16 @@ export function OverviewTab({ match, vm }: OverviewTabProps) {
     )
 }
 
-function StatCard({ label, home, away, icon, isFloat, inverse }: any) {
+interface StatCardProps {
+    label: string
+    home?: number
+    away?: number
+    icon: React.ReactNode
+    isFloat?: boolean
+    inverse?: boolean
+}
+
+function StatCard({ label, home, away, icon, isFloat, inverse }: StatCardProps) {
     if (home === undefined || away === undefined) return null
 
     const homeVal = Number(home)
