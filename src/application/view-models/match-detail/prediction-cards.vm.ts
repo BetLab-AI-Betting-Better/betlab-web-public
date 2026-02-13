@@ -1,5 +1,12 @@
 import type { MatchDetail } from "@/core/entities/match-detail/match-detail.entity"
-import type { MatchResultPrediction } from "@/core/entities/predictions/prediction.entity"
+import type {
+  MatchResultPrediction,
+  CornersPrediction,
+  AsianHandicapPrediction,
+  AsianTotalsPrediction,
+  DoubleChancePrediction,
+  ConfidenceLevel,
+} from "@/core/entities/predictions/prediction.entity"
 import type { HtFtOutcome } from "@/core/entities/match-detail/ht-ft.entity"
 
 export type ConfidenceBadge = {
@@ -143,18 +150,6 @@ export type DoubleChanceCardVM = {
   drawOrAwayOdds?: number
 }
 
-export type PredictionCardsVM = {
-  matchResult: MatchResultCardVM
-  btts: BTTSCardVM
-  overUnder: OverUnderCardVM
-  correctScore: CorrectScoreCardVM
-  htFt: HtFtCardVM
-  corners: CornersCardVM
-  asianHandicap: AsianHandicapCardVM
-  asianTotals: AsianTotalsCardVM
-  doubleChance: DoubleChanceCardVM
-}
-
 const htStates = [
   { id: "H", label: (home: string) => `${home} mene a la MT` },
   { id: "D", label: () => "Score nul a la MT" },
@@ -189,6 +184,10 @@ function confidenceFromTopProb(topProb: number): ConfidenceBadge {
   if (topProb > 20) return confidenceVariants.high
   if (topProb > 12) return confidenceVariants.medium
   return confidenceVariants.low
+}
+
+function getConfidenceBadge(level?: ConfidenceLevel): ConfidenceBadge {
+  return confidenceVariants[level ?? "medium"]
 }
 
 function buildMatchResultCard(match: MatchDetail, prediction?: MatchResultPrediction): MatchResultCardVM {
@@ -366,10 +365,12 @@ function buildHtFtCard(match: MatchDetail): HtFtCardVM {
 }
 
 function buildCornersCard(match: MatchDetail): CornersCardVM {
-  const prediction = match.predictions?.find((p) => p.type === "corners") as any
+  const prediction = match.predictions?.find((p) => p.type === "corners") as
+    | CornersPrediction
+    | undefined
   if (!prediction) return { available: false, title: "Corners", expectedTotal: 0, rows: [] }
 
-  const rows: CornersRow[] = prediction.over.map((o: any, idx: number) => ({
+  const rows: CornersRow[] = prediction.over.map((o, idx) => ({
     line: o.line,
     over: o.probability * 100,
     under: prediction.under[idx]?.probability * 100 || 0,
@@ -378,21 +379,23 @@ function buildCornersCard(match: MatchDetail): CornersCardVM {
   return {
     available: true,
     title: "Corners (Over/Under)",
-    confidence: confidenceVariants[prediction.confidence || "medium"],
+    confidence: getConfidenceBadge(prediction.confidence),
     expectedTotal: prediction.expectedTotal,
     rows,
   }
 }
 
 function buildAsianHandicapCard(match: MatchDetail): AsianHandicapCardVM {
-  const prediction = match.predictions?.find((p) => p.type === "asian_handicap") as any
+  const prediction = match.predictions?.find((p) => p.type === "asian_handicap") as
+    | AsianHandicapPrediction
+    | undefined
   if (!prediction) return { available: false, title: "Handicap Asiatique", lines: [] }
 
   return {
     available: true,
     title: "Handicap Asiatique",
-    confidence: confidenceVariants[prediction.confidence || "medium"],
-    lines: prediction.lines.map((l: any) => ({
+    confidence: getConfidenceBadge(prediction.confidence),
+    lines: prediction.lines.map((l) => ({
       line: l.line,
       home: l.home * 100,
       away: l.away * 100,
@@ -402,14 +405,16 @@ function buildAsianHandicapCard(match: MatchDetail): AsianHandicapCardVM {
 }
 
 function buildAsianTotalsCard(match: MatchDetail): AsianTotalsCardVM {
-  const prediction = match.predictions?.find((p) => p.type === "asian_totals") as any
+  const prediction = match.predictions?.find((p) => p.type === "asian_totals") as
+    | AsianTotalsPrediction
+    | undefined
   if (!prediction) return { available: false, title: "Totaux Asiatiques", lines: [] }
 
   return {
     available: true,
     title: "Totaux Asiatiques",
-    confidence: confidenceVariants[prediction.confidence || "medium"],
-    lines: prediction.lines.map((l: any) => ({
+    confidence: getConfidenceBadge(prediction.confidence),
+    lines: prediction.lines.map((l) => ({
       line: l.line,
       over: l.over * 100,
       under: l.under * 100,
@@ -419,14 +424,16 @@ function buildAsianTotalsCard(match: MatchDetail): AsianTotalsCardVM {
 }
 
 function buildDoubleChanceCard(match: MatchDetail): DoubleChanceCardVM {
-  const prediction = match.predictions?.find((p) => p.type === "double_chance") as any
+  const prediction = match.predictions?.find((p) => p.type === "double_chance") as
+    | DoubleChancePrediction
+    | undefined
   if (!prediction)
     return { available: false, title: "Double Chance", homeOrDraw: 0, homeOrAway: 0, drawOrAway: 0 }
 
   return {
     available: true,
     title: "Double Chance",
-    confidence: confidenceVariants[prediction.confidence || "medium"],
+    confidence: getConfidenceBadge(prediction.confidence),
     homeOrDraw: prediction.homeOrDraw.probability * 100,
     homeOrAway: prediction.homeOrAway.probability * 100,
     drawOrAway: prediction.drawOrAway.probability * 100,
