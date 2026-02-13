@@ -11,6 +11,10 @@ interface PredictionsTabProps {
 }
 
 type MarketType =
+  | "match_result"
+  | "over_under"
+  | "both_teams_score"
+  | "correct_score"
   | "ht_ft"
   | "asian_handicap"
   | "asian_totals"
