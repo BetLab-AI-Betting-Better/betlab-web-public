@@ -3,6 +3,7 @@ import type { MatchResultPrediction, ConfidenceLevel } from "@/core/entities/pre
 import { buildPredictionCardsVM, type PredictionCardsVM } from "./prediction-cards.vm";
 import {
   getBestMarket,
+  getCandidateMarkets,
   getMatch1x2,
   getMatchConfidence,
   getMatchDefenseFactor,
@@ -28,7 +29,20 @@ export type MatchDetailVM = {
     prob: number;
     odds?: number;
     edge?: number;
+    successRate?: number;
+    sampleSize?: number;
   } | null;
+  candidateMarkets: Array<{
+    label: string;
+    rawLabel: string;
+    type?: string;
+    prob: number;
+    odds?: number;
+    edge?: number;
+    successRate?: number;
+    sampleSize?: number;
+    isBest?: boolean;
+  }>;
   header: {
     confidence: ConfidenceLevel;
   };
@@ -48,7 +62,14 @@ export type MatchDetailVM = {
     rest: { home: number; away: number } | null;
     ratings: { home: number; away: number } | null;
     radarData: RadarPoint[];
-    opportunities: Array<{ type: string; label: string; prob: number }>
+    opportunities: Array<{
+      type: string;
+      label: string;
+      prob: number;
+      market?: string;
+      successRate?: number;
+      sampleSize?: number;
+    }>
   };
   narration: NarrationResult;
 };
@@ -107,6 +128,7 @@ export function buildMatchDetailVM(match: MatchDetail): MatchDetailVM {
   ];
 
   const rawBestMarket = getBestMarket(match);
+  const rawCandidateMarkets = getCandidateMarkets(match);
   const bestMarket = rawBestMarket ? {
     label: formatMarketLabel(rawBestMarket.market, {
       homeName: match.homeTeam.name,
@@ -115,14 +137,44 @@ export function buildMatchDetailVM(match: MatchDetail): MatchDetailVM {
     rawLabel: rawBestMarket.market,
     prob: rawBestMarket.prob * 100, // Scaling to 100
     odds: rawBestMarket.odds,
-    edge: rawBestMarket.edge
+    edge: rawBestMarket.edge,
+    successRate: rawBestMarket.successRate,
+    sampleSize: rawBestMarket.sampleSize,
   } : null;
+  const candidateMarkets = rawCandidateMarkets.map((candidate) => ({
+    label: formatMarketLabel(candidate.market, {
+      homeName: match.homeTeam.name,
+      awayName: match.awayTeam.name
+    }) || candidate.label || candidate.market,
+    rawLabel: candidate.market,
+    type: candidate.type,
+    prob: candidate.prob * 100,
+    odds: candidate.odds,
+    edge: candidate.edge,
+    successRate: candidate.successRate,
+    sampleSize: candidate.sampleSize,
+    isBest: candidate.isBest,
+  }));
+  if (bestMarket && !candidateMarkets.some((candidate) => candidate.rawLabel === bestMarket.rawLabel)) {
+    candidateMarkets.unshift({
+      label: bestMarket.label,
+      rawLabel: bestMarket.rawLabel,
+      type: undefined,
+      prob: bestMarket.prob,
+      odds: bestMarket.odds,
+      edge: bestMarket.edge,
+      successRate: bestMarket.successRate,
+      sampleSize: bestMarket.sampleSize,
+      isBest: true,
+    });
+  }
 
   const vmPartial = {
     match,
     prediction,
     hasProbabilities: Boolean(match.probabilities),
     bestMarket,
+    candidateMarkets,
     header: {
       confidence,
     },
@@ -142,7 +194,14 @@ export function buildMatchDetailVM(match: MatchDetail): MatchDetailVM {
       rest,
       ratings,
       radarData,
-      opportunities: prediction?.analytics?.opportunities ?? [],
+      opportunities: (prediction?.analytics?.opportunities ?? []).map((opportunity) => ({
+        type: opportunity.type,
+        label: opportunity.label,
+        prob: opportunity.prob,
+        market: opportunity.market,
+        successRate: opportunity.successRate,
+        sampleSize: opportunity.sampleSize,
+      })),
     },
   } as MatchDetailVM;
 

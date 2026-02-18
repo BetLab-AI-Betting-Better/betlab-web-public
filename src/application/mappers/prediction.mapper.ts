@@ -70,6 +70,29 @@ export interface API1X2Response {
     type: string
     label: string
     prob: number
+    market?: string
+    success_rate?: number | null
+    sample_size?: number | null
+  }>
+  best_market?: {
+    market: string
+    label?: string | null
+    prob: number
+    edge?: number | null
+    odds?: number | null
+    success_rate?: number | null
+    sample_size?: number | null
+  } | null
+  candidate_markets?: Array<{
+    market: string
+    label: string
+    type?: string | null
+    prob: number
+    odds?: number | null
+    edge?: number | null
+    success_rate?: number | null
+    sample_size?: number | null
+    is_best?: boolean
   }>
 }
 
@@ -214,6 +237,52 @@ export function isValueBet(edge: number | undefined, minEdge: number = 0.05): bo
   return edge !== undefined && edge >= minEdge
 }
 
+function mapOpportunity(
+  opportunity: NonNullable<API1X2Response["opportunities"]>[number]
+): {
+  type: string
+  label: string
+  prob: number
+  market?: string
+  successRate?: number
+  sampleSize?: number
+} {
+  return {
+    type: opportunity.type,
+    label: opportunity.label,
+    prob: opportunity.prob,
+    market: opportunity.market,
+    successRate: opportunity.success_rate ?? undefined,
+    sampleSize: opportunity.sample_size ?? undefined,
+  }
+}
+
+function mapCandidateMarket(
+  candidate: NonNullable<API1X2Response["candidate_markets"]>[number]
+): {
+  market: string
+  label: string
+  type?: string
+  prob: number
+  odds?: number
+  edge?: number
+  successRate?: number
+  sampleSize?: number
+  isBest?: boolean
+} {
+  return {
+    market: candidate.market,
+    label: candidate.label,
+    type: candidate.type ?? undefined,
+    prob: candidate.prob,
+    odds: candidate.odds ?? undefined,
+    edge: candidate.edge ?? undefined,
+    successRate: candidate.success_rate ?? undefined,
+    sampleSize: candidate.sample_size ?? undefined,
+    isBest: candidate.is_best ?? undefined,
+  }
+}
+
 // ==========================================
 // Transform Functions
 // ==========================================
@@ -235,6 +304,19 @@ export function transform1X2ToPrediction(
     response.markets.draw,
     response.markets.away
   )
+  const mappedOpportunities = (response.opportunities ?? []).map(mapOpportunity)
+  const mappedCandidates = (response.candidate_markets ?? []).map(mapCandidateMarket)
+  const bestMarket = response.best_market
+    ? {
+      market: response.best_market.market,
+      label: response.best_market.label ?? undefined,
+      prob: response.best_market.prob,
+      edge: response.best_market.edge ?? undefined,
+      odds: response.best_market.odds ?? undefined,
+      successRate: response.best_market.success_rate ?? undefined,
+      sampleSize: response.best_market.sample_size ?? undefined,
+    }
+    : undefined
 
   return {
     fixtureId,
@@ -302,8 +384,19 @@ export function transform1X2ToPrediction(
         },
         travelDistance: response.inputs.travel_distance_km
       } : undefined,
-      opportunities: response.opportunities
-    }
+      opportunities: mappedOpportunities
+    },
+    best_market: bestMarket,
+    market_candidates: mappedCandidates.length > 0
+      ? mappedCandidates
+      : mappedOpportunities.map((opportunity) => ({
+        market: opportunity.market ?? opportunity.label,
+        label: opportunity.label,
+        type: opportunity.type,
+        prob: opportunity.prob,
+        successRate: opportunity.successRate,
+        sampleSize: opportunity.sampleSize,
+      }))
   }
 }
 

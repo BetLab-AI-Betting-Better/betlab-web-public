@@ -32,15 +32,16 @@ export function getBestMarket(match: MatchDetail) {
   const prediction = getMatchPrediction(match);
   if (!prediction) return null;
 
-  const anyPred = prediction as any;
-  const direct = anyPred.best_market ?? anyPred.bestMarket;
+  const direct = prediction.best_market;
 
-  if (direct && (direct.prob ?? direct.probability) !== undefined) {
+  if (direct && direct.prob !== undefined) {
     return {
-      market: direct.market ?? direct.label ?? direct.rule?.label,
-      prob: direct.prob ?? direct.probability ?? 0,
+      market: direct.market ?? direct.label,
+      prob: direct.prob ?? 0,
       odds: direct.odds,
-      edge: direct.edge
+      edge: direct.edge,
+      successRate: direct.successRate,
+      sampleSize: direct.sampleSize,
     };
   }
 
@@ -55,6 +56,42 @@ export function getBestMarket(match: MatchDetail) {
   }
 
   return null;
+}
+
+export function getCandidateMarkets(match: MatchDetail) {
+  const prediction = getMatchPrediction(match);
+  if (!prediction) return [];
+
+  const directCandidates = prediction.market_candidates ?? [];
+  if (directCandidates.length > 0) {
+    return directCandidates
+      .filter((candidate) => Number.isFinite(candidate.prob))
+      .map((candidate) => ({
+        market: candidate.market,
+        label: candidate.label,
+        type: candidate.type,
+        prob: candidate.prob,
+        odds: candidate.odds,
+        edge: candidate.edge,
+        successRate: candidate.successRate,
+        sampleSize: candidate.sampleSize,
+        isBest: candidate.isBest,
+      }));
+  }
+
+  return (prediction.analytics?.opportunities ?? [])
+    .filter((opportunity) => Number.isFinite(opportunity.prob))
+    .map((opportunity) => ({
+      market: opportunity.market ?? opportunity.label,
+      label: opportunity.label,
+      type: opportunity.type,
+      prob: opportunity.prob,
+      odds: undefined,
+      edge: undefined,
+      successRate: opportunity.successRate,
+      sampleSize: opportunity.sampleSize,
+      isBest: undefined,
+    }));
 }
 
 export function getMatchConfidence(match: MatchDetail, prediction?: MatchResultPrediction) {

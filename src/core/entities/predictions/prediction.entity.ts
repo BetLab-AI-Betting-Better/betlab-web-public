@@ -59,6 +59,9 @@ export interface MatchResultPrediction {
       type: string;
       label: string;
       prob: number;
+      market?: string;
+      successRate?: number;
+      sampleSize?: number;
     }>;
   };
   best_market?: {
@@ -68,7 +71,20 @@ export interface MatchResultPrediction {
     odds?: number;
     edge?: number;
     stake?: number;
+    successRate?: number;
+    sampleSize?: number;
   };
+  market_candidates?: Array<{
+    market: string;
+    label: string;
+    type?: string;
+    prob: number;
+    odds?: number;
+    edge?: number;
+    successRate?: number;
+    sampleSize?: number;
+    isBest?: boolean;
+  }>;
 }
 
 export interface OverUnderPrediction {
